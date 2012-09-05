@@ -458,6 +458,8 @@ public class CentralDispatcher {
 		eca = new ElevatorComponentAnimation(this);
 		eca.setVisible(true);
 		
+		Thread.sleep(2500);
+		
 		initialize();
 		
 		Thread.sleep(2500);

@@ -39,7 +39,6 @@ public class Elevator extends Observable implements Runnable {
 	private int travelTimePerFloor;
 	private int loadUnloadTimePerPassenger;
 	private int capacityThresholdVariable;
-	private boolean paint = true;
 
 
 	public int getCapacityThresholdVariable() {
@@ -201,7 +200,7 @@ public class Elevator extends Observable implements Runnable {
 		return currentFloor;
 	}
 
-	public synchronized void setCurrentFloor(int currentFloor) {
+	public synchronized void setCurrentFloor(Integer currentFloor) {
 		this.currentFloor = currentFloor;
 		setChanged();
 		notifyObservers(currentFloor);
@@ -487,6 +486,7 @@ public class Elevator extends Observable implements Runnable {
 		}
 	}
 	
+	
 	private void loop() throws InterruptedException{
 		
 		Graphics g = this.getCentralDispatcher().getEca().getGraphics();
@@ -505,10 +505,11 @@ public class Elevator extends Observable implements Runnable {
 			hasTask = false;
 			goingUp = false;
 			goingDown = false;
-			if(paint){
-			//this.getCentralDispatcher().getEca().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.pink, ((Integer)(this.getCapacity()-this.getCurrentNumberOfPeopleSpaces())).toString());
-			paint = false;
-			}
+			
+			// set untasked
+			setChanged();
+			notifyObservers(Color.pink);
+			
 			
 			checkToSeeIfPeopleOnFloorForUntaskedElevator();
 			
@@ -546,7 +547,6 @@ public class Elevator extends Observable implements Runnable {
 		if(hasTask || !this.getFloorsArray().isEmpty()){
 			
 			hasTask = true;
-			paint = true;
 			
 			for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
 				if(this.getGroupsOfPassengers().get(i).getCumulativeTimeOfRidingElevator() == 0 && !this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())){
@@ -558,7 +558,9 @@ public class Elevator extends Observable implements Runnable {
 				hasTask = false;
 				goingUp = false;
 				goingDown = false;
-				//this.getCentralDispatcher().getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.pink, ((Integer)(this.getCapacity()-this.getCurrentNumberOfPeopleSpaces())).toString());
+				
+				setChanged();
+				notifyObservers(Color.pink);
 				return;
 			}
 			
@@ -613,17 +615,17 @@ public class Elevator extends Observable implements Runnable {
 			if(goingUp && !goingDown){
 				while(this.getCurrentFloor() < this.getNextFloor()){
 					Thread.sleep((long)(this.getTravelTimePerFloor()/this.getTimeFactor()));
-				//	this.getCentralDispatcher().getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.white, "");
+					setChanged();
+					notifyObservers(Color.blue);
 					this.setCurrentFloor(this.getCurrentFloor()+1);
-				//	this.getCentralDispatcher().getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.blue.brighter(), ((Integer)(this.getCapacity()-this.getCurrentNumberOfPeopleSpaces())).toString());
-
 					
 					if(!temp.equals(this.getFloorsArray())){
 						this.available = false;
 						temp = this.getFloorsArray();
 						temp = sortUp(temp, true);
 						this.setFloorsArray(temp);
-					//	this.getCentralDispatcher().getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.yellow.brighter(), ((Integer)(this.getCapacity()-this.getCurrentNumberOfPeopleSpaces())).toString());
+						setChanged();
+						notifyObservers(Color.yellow);
 						this.setNextFloor(this.getFloorsArray().get(0));
 						this.available = true;
 					}
@@ -674,16 +676,19 @@ public class Elevator extends Observable implements Runnable {
 				boolean doRemove = true;
 				while(this.getCurrentFloor() > this.getNextFloor()){
 					Thread.sleep((long)(this.getTravelTimePerFloor()/this.getTimeFactor()));
-				//	this.getCentralDispatcher().getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.white, "");
+					setChanged();
+					notifyObservers(Color.blue);
 					this.setCurrentFloor(this.getCurrentFloor()-1);
-				//	this.getCentralDispatcher().getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.blue.brighter(), ((Integer)(this.getCapacity()-this.getCurrentNumberOfPeopleSpaces())).toString());
-
+					setChanged();
+					notifyObservers(Color.blue);
+					
 					if(!temp.equals(this.getFloorsArray())){
 						this.available = false;
 						temp = this.getFloorsArray();
 						temp = sortDown(temp, true);
 						this.setFloorsArray(temp);
-				//		this.getCentralDispatcher().getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.yellow.brighter(), ((Integer)(this.getCapacity()-this.getCurrentNumberOfPeopleSpaces())).toString());
+						setChanged();
+						notifyObservers(Color.yellow);
 						this.setNextFloor(this.getFloorsArray().get(0));
 						this.available = true;
 					}
@@ -751,7 +756,9 @@ public class Elevator extends Observable implements Runnable {
 				this.getCentralDispatcher().insertIntoDebuggingTable(this.getCentralDispatcher().getRunNumber(),this.getCentralDispatcher().getNumberOfFloors(),this.getCentralDispatcher().getNumberOfElevators(),problem,this.getCentralDispatcher().getCurrentTime()/1000,this.getClass().getName());
 			}
 			isStoppedOnCurrentFloor = true;
-		//	this.getCentralDispatcher().getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.green.brighter(), ((Integer)(this.getCapacity()-this.getCurrentNumberOfPeopleSpaces())).toString());
+		
+			setChanged();
+			notifyObservers(Color.green);
 			this.getFloorsArray().remove(0);
 			
 			//we don't know what the next floor is yet...we have to load passengers and see what their requests are!
@@ -823,8 +830,9 @@ public class Elevator extends Observable implements Runnable {
 							this.goingDown = true;
 						}
 					}
-					
-			//		this.getCentralDispatcher().getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.cyan, ((Integer)(this.getCapacity()-this.getCurrentNumberOfPeopleSpaces())).toString());
+							
+					setChanged();
+					notifyObservers(Color.cyan);
 					
 					fob.getArrivalGroupArray().get(i).setCumulativeTimeOfWaiting(System.nanoTime()/1000000-fob.getArrivalGroupArray().get(i).getTimeOfArrival());
 					fob.getArrivalGroupArray().get(i).setWaiting(false);
@@ -897,14 +905,6 @@ public class Elevator extends Observable implements Runnable {
 				}
 			}
 			
-			Integer countPplWaiting2 = fob.getCurrentNumberWaiting();
-			int countPplWaitingUp2 = fob.getCurrentNumberWaitingToGoUp();
-			int countPplWaitingDown2 = fob.getCurrentNumberWaitingToGoDown();
-			
-		//	this.getCentralDispatcher().getEa().paintOver(g, this.getCurrentFloor());
-		//	this.getCentralDispatcher().getEa().paint(g, this.getCurrentFloor(),countPplWaiting2,20,letterSize);
-		//	this.getCentralDispatcher().getEa().paint(g,this.getCurrentFloor(),countPplWaitingUp2,30,(int)(letterSize*1.1));
-		//	this.getCentralDispatcher().getEa().paint(g,this.getCurrentFloor(),countPplWaitingDown2,40,(int)(letterSize*1.2));
 		}
 	}
 }

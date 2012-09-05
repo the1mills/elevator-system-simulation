@@ -6,10 +6,10 @@ import java.util.Vector;
 public class ElevatorSimulationMainController {
 
 	private int runNumber;
-	public static int[] numberOfElevators = {29};
-	public static int numberOfFloors = 57;
+	public static int[] numberOfElevators = {4};
+	public static int numberOfFloors = 10;
 	private volatile long lengthOfSim;
-	private int[] timeFactor = {5,15,15,5,5,5,5};
+	private int[] timeFactor = {25,15,15,5,5,5,5};
 	private int[] totalServedArray;
 	private volatile MemoryMgt mgmt;
 	private int[] numberOfEmptySpacesToUseGoingToVariable = { 2, 3 }; // 1

@@ -7,7 +7,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.LayoutManager;
 import java.awt.RenderingHints;
 
 import javax.swing.JPanel;
@@ -15,6 +14,10 @@ import javax.swing.JPanel;
 
 public class JPanelElevatorGrid extends JPanel {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	Graphics g = null;
 	Graphics2D g2d = null;
 	Dimension size = null;
@@ -40,12 +43,16 @@ public class JPanelElevatorGrid extends JPanel {
 					11, 300 / ElevatorSimulationMainController.numberOfFloors), 40)));
 			g2d.setFont(font1);
 
+			Integer height = null;
+			
 			// HORIZONTAL LINES
 			for (Integer i = 0; i < ElevatorSimulationMainController.numberOfFloors + 1; i++) {
-				g2d.drawLine(50, (int) (size.getHeight() - 100 - i
-						* ((size.getHeight()-200) / ((double) ElevatorSimulationMainController.numberOfFloors))), (int) size.getWidth() - 150, (int) (size
-						.getHeight() - 100 - i
-						* ((size.getHeight()-200)/ ((double) ElevatorSimulationMainController.numberOfFloors))));
+				
+				height = (int) (size.getHeight() - 100 - i
+						* ((size.getHeight() -200) / ((double) ElevatorSimulationMainController.numberOfFloors)));
+				
+				g2d.drawLine(50, height,  (int) ((50 + (CentralDispatcher.numberOfElevators)* ((size.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators))))
+				, height);
 
 				// DRAW Floor NUMBERS
 				if (i == ElevatorSimulationMainController.numberOfFloors) {
@@ -55,9 +62,7 @@ public class JPanelElevatorGrid extends JPanel {
 						.drawString(
 								i.toString(),
 								20,
-								(int)size.getHeight()
-										- 100
-										- (int) (i * ((size.getHeight()-200)/ (double) ElevatorSimulationMainController.numberOfFloors)));
+								height);
 			}
 
 			width = 2;
@@ -66,10 +71,15 @@ public class JPanelElevatorGrid extends JPanel {
 
 			// VERTICAL LINES
 			for (Integer i = 0; i < CentralDispatcher.numberOfElevators + 1; i++) {
-				g2d.drawLine((int) (50 + i* ((size.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators))), 
+				
+				Integer gridwidth = (int) ((50 + i* ((size.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators))));
+				height = (int) (size.getHeight() - 100 - (ElevatorSimulationMainController.numberOfFloors)
+						* ((size.getHeight() - 200) / ((double) ElevatorSimulationMainController.numberOfFloors)));
+				
+				g2d.drawLine(gridwidth, 
 						(int)size.getHeight() - 100, 
-						(int) (50 + i* ((size.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators))), 
-						150);
+						gridwidth, 
+						height);
 			}
 			
 			g.finalize();
