@@ -1,15 +1,13 @@
 package start;
 
 
-import java.util.Vector;
-
 public class ElevatorSimulationMainController {
 
 	private int runNumber;
-	public static int[] numberOfElevators = {4};
-	public static int numberOfFloors = 10;
+	public static int[] numberOfElevators = {2,16};
+	public static int numberOfFloors = 11;
 	private volatile long lengthOfSim;
-	private int[] timeFactor = {25,15,15,5,5,5,5};
+	private int[] timeFactor = {10,20,20};
 	private int[] totalServedArray;
 	private volatile MemoryMgt mgmt;
 	private int[] numberOfEmptySpacesToUseGoingToVariable = { 2, 3 }; // 1
@@ -20,12 +18,34 @@ public class ElevatorSimulationMainController {
 	private int[] maxDistanceForUntaskedVariable = { 5, 6 }; // 6
 	private int[] countUntaskedVariable = { 0, 1 }; // 7
 	private int[] appendDistanceVariable = { 5, 6 }; // 8
-	private int[] distanceAlreadyGoingVariable = { 4, 5 }; // 9
-	private int[] capacityVariable = {9,10,11,12};
+	private int[] distanceAlreadyGoingVariable = { 4, 5}; // 9
+	private int[] capacityVariable = {9,10};
 
+	public static Integer numberOfRunsTotal = null;
 	
 	public int getRunNumber() {
 		return runNumber;
+	}
+	
+	public Integer getTotalNumberOfRuns(){
+		
+		Integer x = null;
+		
+		x = this.getNumberOfElevators().length*
+				this.getTimeFactor().length*
+				this.getNumberOfEmptySpacesToUseGoingToVariable().length*
+				this.getNumberOfEmptySpacesToUsePassingByVariable().length*
+				this.getNumberOfEmptySpacesToUseSameFloorVariable().length*
+				this.getCapacityThresholdVariable().length*
+				this.getNumberOfFloorsDifference().length*
+				this.getMaxDistanceForUntaskedVariable().length*
+				this.getCountUntaskedVariable().length*
+				this.getAppendDistanceVariable().length*
+				this.getDistanceAlreadyGoingVariable().length*
+				this.getCapacityVariable().length;
+		
+		return x;
+		
 	}
 
 	public void setRunNumber(int runNumber) {
@@ -166,6 +186,7 @@ public class ElevatorSimulationMainController {
 
 	public ElevatorSimulationMainController() throws InterruptedException {
 
+		numberOfRunsTotal = getTotalNumberOfRuns();
 		totalServedArray = new int[timeFactor.length];
 		mgmt = new MemoryMgt(0);
 
@@ -200,7 +221,8 @@ public class ElevatorSimulationMainController {
 																numberOfEmptySpacesToUseSameFloorVariable[n2],
 																capacityThresholdVariable[o],
 																timeFactor[p]);
-														cd.getEca().dispose();
+									
+														CentralDispatcher.getEca().dispose();
 														this.getMgmt()
 																.cleanMemory();
 														cd = null;
@@ -217,7 +239,6 @@ public class ElevatorSimulationMainController {
 						}
 					}
 				}
-
 			}
 		}
 

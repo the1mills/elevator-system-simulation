@@ -14,9 +14,10 @@ public class FloorOfBuilding extends Observable implements Runnable{
 	private int floorNumber;
 	private volatile CentralDispatcher centralDispatcher;
 	private int currentNumberWaiting =0;
-	private volatile Vector<ArrivalGroup> arrivalGroupArray = new Vector<ArrivalGroup>();
+	private volatile ArrivalGroupArray arrivalGroupArray = null;
 	private volatile double timeFactor;
-
+	private volatile ArrivalGroupArray aga = null;
+	
 	public synchronized ArrivalGroup getNextInLine(){
 		for(int i = 0; i < this.getArrivalGroupArray().size(); i++){
 			if(this.getArrivalGroupArray().get(i).isWaiting()){
@@ -26,20 +27,20 @@ public class FloorOfBuilding extends Observable implements Runnable{
 		return null;
 	}
 	
-	public synchronized CentralDispatcher getCentralDispatcher() {
-		return centralDispatcher;
-	}
-
-	public synchronized void setCentralDispatcher(CentralDispatcher centralDispatcher) {
-		this.centralDispatcher = centralDispatcher;
-	}
+//	public synchronized CentralDispatcher getCentralDispatcher() {
+//		return centralDispatcher;
+//	}
+//
+//	public synchronized void setCentralDispatcher(CentralDispatcher centralDispatcher) {
+//		this.centralDispatcher = centralDispatcher;
+//	}
 
 	public synchronized int getCurrentNumberWaiting() {
 		
 		int count = 0;
 		for(int i = 0; i < this.getArrivalGroupArray().size(); i++){
 			if(this.getArrivalGroupArray().get(i).isWaiting()){
-			for(int j = 0; j < this.getArrivalGroupArray().get(i).getNumberOfPeopleInGroup();  j++){
+			for(int j = 0; j < this.getArrivalGroupArray().get(i).getNumberOfPeopleInGroup(); j++){
 				count++;
 			}
 			}
@@ -77,11 +78,11 @@ public class FloorOfBuilding extends Observable implements Runnable{
 		this.currentNumberWaiting = currentNumberWaiting;
 	}
 
-	public synchronized Vector<ArrivalGroup> getArrivalGroupArray() {
+	public synchronized ArrivalGroupArray getArrivalGroupArray() {
 		return arrivalGroupArray;
 	}
 
-	public synchronized void setArrivalGroupArray(Vector<ArrivalGroup> arrivalGroupArray) {
+	public synchronized void setArrivalGroupArray(ArrivalGroupArray arrivalGroupArray) {
 		this.arrivalGroupArray = arrivalGroupArray;
 	}
 	public synchronized double getInterArrivalTime() {
@@ -108,15 +109,16 @@ public class FloorOfBuilding extends Observable implements Runnable{
 		this.floorNumber = floorNumber;
 	}
 	
-	public FloorOfBuilding(CentralDispatcher centralDispatcher, double interArrivalTime,
+	public FloorOfBuilding(double interArrivalTime,
 			int avgNumberPerArrivalGroup, int floorNumber, double timeFactor) {
-		this.centralDispatcher = centralDispatcher;
+		
 		this.interArrivalTime = interArrivalTime;
 		this.avgNumberPerArrivalGroup = avgNumberPerArrivalGroup;
 		this.floorNumber = floorNumber;
 		this.timeFactor = timeFactor;
-		
-		this.addObserver(this.getCentralDispatcher().getEca());
+		//aga = new ArrivalGroupArray();
+		arrivalGroupArray  = new ArrivalGroupArray();;
+		this.addObserver(CentralDispatcher.getEca());
 	}
 	
 	@Override
@@ -154,9 +156,8 @@ public class FloorOfBuilding extends Observable implements Runnable{
 
 	private void loop() throws InterruptedException{
 		
-			int letterSize = (int)(Math.min(Math.max(11, 350 / this.getCentralDispatcher().getNumberOfFloors()),40));
-		
-			int randomFloor = (int)(Math.random()*this.getCentralDispatcher().getNumberOfFloors());
+	
+		int randomFloor = (int)(Math.random()*CentralDispatcher.getNumberOfFloors());
 		if(randomFloor == this.getFloorNumber()){
 			return;
 		}
@@ -169,23 +170,25 @@ public class FloorOfBuilding extends Observable implements Runnable{
 		this.getArrivalGroupArray().add(ag);
 		
 		//here we see if there is already an untasked elevator on the floor 
-		Elevator[] temp = this.getCentralDispatcher().getElevatorArray();
+		Elevator[] temp = CentralDispatcher.getElevatorArray();
 		for(int i = 0; i < temp.length; i++){
 			if(temp[i].getCurrentFloor() == this.getFloorNumber() && temp[i].isHasTask()== false && temp[i].isStoppedOnCurrentFloor()){
+				
+				//make the elevator wait here, lock the elevator, make unavailable...
 				if(temp[i].getCurrentNumberOfPeopleSpaces() != temp[i].getCapacity()){
 					String problem = "Untasked elevator has people on it while stopped on a floor!! lame...";
-					this.getCentralDispatcher().insertIntoDebuggingTable(this.getCentralDispatcher().getRunNumber(), this.getCentralDispatcher().getNumberOfFloors(),this.getCentralDispatcher().getNumberOfElevators(),problem,this.getCentralDispatcher().getCurrentTime()/1000, this.getClass().getName());
+					CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(), CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000, this.getClass().getName());
 				}
 			   int groupSize = ag.getNumberOfPeopleInGroup();
 			   if(temp[i].getCurrentNumberOfPeopleSpaces() >= groupSize){
-			   temp[i].setAvailable(false);
+		//	   temp[i].setAvailable(false);
 			   temp[i].setHasTask(true);
-			   this.getCentralDispatcher().getElevatorThreadArray()[i].sleep((long)(groupSize*2000/this.getCentralDispatcher().getTimeFactor()));	
+		//	   CentralDispatcher.getElevatorThreadArray()[i].sleep((long)(groupSize*2000/CentralDispatcher.getTimeFactor()));	
 			   ag.setWaiting(false);
 			   ag.setCumulativeTimeOfWaiting(System.nanoTime()/1000000-ag.getTimeOfArrival());
 			   ag.setTimeFirstBoarding(System.nanoTime()/1000000);
 			   temp[i].getGroupsOfPassengers().add(ag);
-			   temp[i].setAvailable(true);
+		//	   temp[i].setAvailable(true);
 			   return;
 			   }
 			}
@@ -193,7 +196,7 @@ public class FloorOfBuilding extends Observable implements Runnable{
 		}
 		//perhaps we don't need the following section
 		//we find a tasked elevator stopped on the same floor, that has space and is going the right direction
-//		temp = this.getCentralDispatcher().getElevatorArray();
+//		temp = CentralDispatcher.getElevatorArray();
 //		for(int i = 0; i < temp.length; i++){
 //			//basic/preliminary conditions to add people
 //			String direction = "";
@@ -214,7 +217,7 @@ public class FloorOfBuilding extends Observable implements Runnable{
 //				}
 //			   temp[i].setHasTask(true);
 //			   int groupSize = ag.getNumberOfPeopleInGroup();
-//			   this.getCentralDispatcher().getElevatorThreadArray()[i].sleep((long)(groupSize*2000/this.getCentralDispatcher().getTimeFactor()));
+//			   CentralDispatcher.getElevatorThreadArray()[i].sleep((long)(groupSize*2000/CentralDispatcher.getTimeFactor()));
 //			   ag.setWaiting(false);
 //			   ag.setCumulativeTimeOfWaiting(System.nanoTime()/1000000-ag.getTimeOfArrival());
 //			   ag.setTimeFirstBoarding(System.nanoTime()/1000000);
@@ -226,15 +229,14 @@ public class FloorOfBuilding extends Observable implements Runnable{
 		
 		//if we can't find an elevator on the same floor, then we send the Central Dispatcher a new request to find us an elevator to serve these new people waiting!
 		// here we only add new elements to the request array if there isn't a redundancy.
-		// we could make the this
-		Vector<ArrivalGroup> requestArrayTemp = this.getCentralDispatcher().getRequestArray();
-		for(int i = 0; i < requestArrayTemp.size(); i++){
-			if(requestArrayTemp.get(i).getStartFloor() == ag.getStartFloor() && requestArrayTemp.get(i).getDirection().equals(ag.getDirection())){
-				return;
-			}
-		}
-		this.getCentralDispatcher().getRequestArray().add(ag);
+		
+	//	CentralDispatcher.ra.ralock();
+	
+		CentralDispatcher.addToRequestArray(ag);
+		getCurrentNumberWaiting();  // this will notify observers
+	//	CentralDispatcher.ra.raUnlock();
 	}
+	
 }
 
 

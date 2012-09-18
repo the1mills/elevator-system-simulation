@@ -27,6 +27,7 @@ public class JPanelElevatorGrid extends JPanel {
 		this.setLayout(null);
 		this.setOpaque(true);
 		this.size = size;
+		this.setBackground(Color.white);
 	}
 
 	public void paintComponent(Graphics g){

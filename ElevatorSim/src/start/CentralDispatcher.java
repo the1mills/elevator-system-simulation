@@ -1,424 +1,475 @@
 package start;
 
-
-import java.awt.Graphics;
 import java.util.Date;
 import java.util.List;
 import java.util.Vector;
 
-import javax.swing.SwingWorker;
 
-public class CentralDispatcher {
+public class CentralDispatcher{
 
-	private int runNumber;
-	private volatile MemoryMgt memoryMgt = new MemoryMgt(0);
-	private int numberOfFloors;
-	private boolean[] isSomeoneWaitingOnFloor;
-	private volatile double[] currentTimeOfWaiting;
+
+	private static int runNumber;
+	private static volatile MemoryMgt memoryMgt = new MemoryMgt(0);
+	private static int numberOfFloors;
+	private static boolean[] isSomeoneWaitingOnFloor;
+	private static volatile double[] currentTimeOfWaiting;
 	public static int numberOfElevators;
-	private volatile Elevator[] elevatorArray;
-	private volatile FloorOfBuilding[] floorArray;
-	private volatile Thread[] elevatorThreadArray;
-	private volatile Thread[] floorThreadArray;
-	private boolean firstLoop = true;
-	private boolean keepLooping = true;
-	private volatile double currentTime;
-	private volatile Vector<ArrivalGroup> requestArray;
-	private int integerOne = 3;
-	private int countNull = 0;
-	private int countOccurencesOfElevatorOnSameFloor = 0;
-	private int countOccurencesOfElevatorOfRestrictiveUntasked = 0;
-	private int countOccurencesOfElevatorAlreadyGoingToFloor = 0;
-	private int countOccurencesOfElevatorGoingPastFloor = 0;
-	private int countOccurencesFindClosestUntaskedElevator = 0;
-	private int countOccurencesOfElevatorAppending = 0;
-	private volatile ElevatorAnimation ea = null;
-	private volatile Integer[] distributionOfUntaskedElevators;
-	private volatile double timeFactor;
-	private volatile IndividualSimulationRunData isrd = null;
-	private int numberOfEmptySpacesToUseSameFloorVariable; //1
-	private int numberOfEmptySpacesToUseGoingToVariable;  //2
-	private int numberOfEmptySpacesToUsePassingByVariable;  //3
-	private int capacityThresholdVariable;  //4
-	private int numberOfFloorsDifference;  //5
-	private int maxDistanceForUntaskedVariable;  //6
-	private int countUntaskedVariable; //7
-	private int appendDistanceVariable; //8
-	private int distanceAlreadyGoingVariable; //9
-	private volatile SQLDataServer sds = null;
-	private volatile int capacityOfElevator;
-	private volatile long loadUnloadTimePerPassenger = 2000;
-	private Date startDate = null;
-	private Date endDate = null;
-	private volatile double startOfSim;
-	private double lengthOfSim = 1500000;
-	private ElevatorComponentAnimation eca = null;
+	private static volatile Elevator[] elevatorArray;
+	private static volatile FloorOfBuilding[] floorArray;
+	private static volatile Thread[] elevatorThreadArray;
+	private static volatile Thread[] floorThreadArray;
+	private static boolean firstLoop = true;
+	private static boolean keepLooping = true;
+	private static volatile double currentTime;
+	private static volatile Vector<ArrivalGroup> requestArray;
+	private static int integerOne = 3;
+	private static int countNull = 0;
+	private static int countOccurencesOfElevatorOnSameFloor = 0;
+	private static int countOccurencesOfElevatorOfRestrictiveUntasked = 0;
+	private static int countOccurencesOfElevatorAlreadyGoingToFloor = 0;
+	private static int countOccurencesOfElevatorGoingPastFloor = 0;
+	private static int countOccurencesFindClosestUntaskedElevator = 0;
+	private static int countOccurencesOfElevatorAppending = 0;
+	private static volatile ElevatorAnimation ea = null;
+	private static volatile Integer[] distributionOfUntaskedElevators;
+	private static volatile double timeFactor;
+	private static volatile IndividualSimulationRunData isrd = null;
+	private static int numberOfEmptySpacesToUseSameFloorVariable; //1
+	private static int numberOfEmptySpacesToUseGoingToVariable;  //2
+	private static int numberOfEmptySpacesToUsePassingByVariable;  //3
+	private static int capacityThresholdVariable;  //4
+	private static int numberOfFloorsDifference;  //5
+	private static int maxDistanceForUntaskedVariable;  //6
+	private static int countUntaskedVariable; //7
+	private static int appendDistanceVariable; //8
+	private static int distanceAlreadyGoingVariable; //9
+	static volatile SQLDataServer sds = null;
+	private static volatile int capacityOfElevator; //10
+	private static volatile long loadUnloadTimePerPassenger = 2000;
+	private static Date startDate = null;
+	private static Date endDate = null;
+	private static volatile double startOfSim;
+	private static double lengthOfSim = 1500000;
+	private static volatile ElevatorComponentAnimation eca = null;
+	private static boolean simulationPaused = false;
+	public static volatile RequestArray ra = null;
+	public static volatile Integer[][] floorTruth = null;
+	
 
-	public long getLoadUnloadTimePerPassenger() {
+	public static synchronized boolean isSimulationPaused() {
+		return simulationPaused;
+	}
+	
+
+	public static synchronized RequestArray getRa() {
+		return ra;
+	}
+
+	public static synchronized void setRa(RequestArray ra) {
+		CentralDispatcher.ra = ra;
+	}
+
+	public static synchronized Integer[][] getFloorTruth() {
+		return floorTruth;
+	}
+
+	public static synchronized void setFloorTruth(Integer[][] floorTruth) {
+		CentralDispatcher.floorTruth = floorTruth;
+	}
+
+	public static synchronized void setSimulationPaused(boolean simulationPaused) throws InterruptedException {
+		CentralDispatcher.simulationPaused = simulationPaused;
+		if(CentralDispatcher.simulationPaused){
+			for(int i = 0; i < CentralDispatcher.getFloorThreadArray().length; i++){
+				CentralDispatcher.getFloorThreadArray()[i].sleep(50);	
+			}
+			for(int i = 0; i < CentralDispatcher.getElevatorThreadArray().length; i++){
+				CentralDispatcher.getFloorThreadArray()[i].sleep(50);	
+			}
+		
+		}
+		else{
+			for(int i = 0; i < CentralDispatcher.getFloorThreadArray().length; i++){
+				CentralDispatcher.getFloorThreadArray()[i].interrupt();	
+			}
+			for(int i = 0; i < CentralDispatcher.getElevatorThreadArray().length; i++){
+				CentralDispatcher.getFloorThreadArray()[i].interrupt();	
+			}
+			
+		}
+	}
+
+	
+	public static long getLoadUnloadTimePerPassenger() {
 		return loadUnloadTimePerPassenger;
 	}
 
-	public void setLoadUnloadTimePerPassenger(long loadUnloadTimePerPassenger) {
-		this.loadUnloadTimePerPassenger = loadUnloadTimePerPassenger;
+	public static void setLoadUnloadTimePerPassenger(long loadUnloadTimePerPassenger) {
+		CentralDispatcher.loadUnloadTimePerPassenger = loadUnloadTimePerPassenger;
 	}
 
-	public ElevatorComponentAnimation getEca() {
+	public static String getStartDate() {
+		return CentralDispatcher.startDate.toString().replace("EDT", "").replace(" ", "");
+	}
+	
+	public synchronized static ElevatorComponentAnimation getEca() {
 		return eca;
 	}
 
-	public void setEca(ElevatorComponentAnimation eca) {
-		this.eca = eca;
+	public synchronized  static void setEca(ElevatorComponentAnimation eca) {
+		CentralDispatcher.eca = eca;
 	}
 
-	public double getLengthOfSim() {
+	public static  double getLengthOfSim() {
 		return lengthOfSim;
 	}
 
-	public void setLengthOfSim(double lengthOfSim) {
-		this.lengthOfSim = lengthOfSim;
+	public static void setLengthOfSim(double lengthOfSim) {
+		CentralDispatcher.lengthOfSim = lengthOfSim;
 	}
 
-	public double getStartOfSim() {
+	public static double getStartOfSim() {
 		return startOfSim;
 	}
 
-	public void setStartOfSim(double startOfSim) {
-		this.startOfSim = startOfSim;
+	public static void setStartOfSim(double startOfSim) {
+		CentralDispatcher.startOfSim = startOfSim;
 	}
 
-	public String getEndDate() {
-		return this.endDate.toString().replace("EDT", "").replace(" ", "");
+	public static  String getEndDate() {
+		return CentralDispatcher.endDate.toString().replace("EDT", "").replace(" ", "");
 	}
 
-	public void setEndDate(Date endDate) {
-		this.endDate = endDate;
+	public static void setEndDate(Date endDate) {
+		CentralDispatcher.endDate = endDate;
 	}
 
-	public void setStartDate(Date startDate) {
-		this.startDate = startDate;
+	public static void setStartDate(Date startDate) {
+		CentralDispatcher.startDate = startDate;
 	}
 
-	public synchronized SQLDataServer getSds() {
+	public static synchronized SQLDataServer getSds() {
 		return sds;
 	}
 
-	public synchronized void setSds(SQLDataServer sds) {
-		this.sds = sds;
+	public static synchronized void setSds(SQLDataServer sds) {
+		CentralDispatcher.sds = sds;
 	}
 
-	public int getCapacityOfElevator() {
+	public static int getCapacityOfElevator() {
 		return capacityOfElevator;
 	}
 
-	public void setCapacityOfElevator(int capacityOfElevator) {
-		this.capacityOfElevator = capacityOfElevator;
+	public static void setCapacityOfElevator(int capacityOfElevator) {
+		CentralDispatcher.capacityOfElevator = capacityOfElevator;
 	}
 
-	public synchronized int getRunNumber() {
-		return runNumber;
+	public static synchronized Integer getRunNumber() {
+		return (Integer)runNumber;
 	}
 
-	public synchronized void setRunNumber(int runNumber) {
-		this.runNumber = runNumber;
+	public static synchronized void setRunNumber(int runNumber) {
+		CentralDispatcher.runNumber = runNumber;
 	}
 
-	public synchronized int getCountOccurencesOfElevatorOfRestrictiveUntasked() {
+	public static synchronized int getCountOccurencesOfElevatorOfRestrictiveUntasked() {
 		return countOccurencesOfElevatorOfRestrictiveUntasked;
 	}
 
-	public synchronized void setCountOccurencesOfElevatorOfRestrictiveUntasked(
+	public static synchronized void setCountOccurencesOfElevatorOfRestrictiveUntasked(
 			int countOccurencesOfElevatorOfRestrictiveUntasked) {
-		this.countOccurencesOfElevatorOfRestrictiveUntasked = countOccurencesOfElevatorOfRestrictiveUntasked;
+		CentralDispatcher.countOccurencesOfElevatorOfRestrictiveUntasked = countOccurencesOfElevatorOfRestrictiveUntasked;
 	}
 
-	public synchronized int getAppendDistanceVariable() {
+	public static synchronized int getAppendDistanceVariable() {
 		return appendDistanceVariable;
 	}
 
-	public synchronized void setAppendDistanceVariable(int appendDistanceVariable) {
-		this.appendDistanceVariable = appendDistanceVariable;
+	public static synchronized void setAppendDistanceVariable(int appendDistanceVariable) {
+		CentralDispatcher.appendDistanceVariable = appendDistanceVariable;
 	}
 
-	public synchronized int getDistanceAlreadyGoingVariable() {
+	public static synchronized int getDistanceAlreadyGoingVariable() {
 		return distanceAlreadyGoingVariable;
 	}
 
-	public synchronized  void setDistanceAlreadyGoingVariable(int distanceAlreadyGoingVariable) {
-		this.distanceAlreadyGoingVariable = distanceAlreadyGoingVariable;
+	public static synchronized  void setDistanceAlreadyGoingVariable(int distanceAlreadyGoingVariable) {
+		CentralDispatcher.distanceAlreadyGoingVariable = distanceAlreadyGoingVariable;
 	}
-	public synchronized int getCountOccurencesOfElevatorAppending() {
+	public static synchronized int getCountOccurencesOfElevatorAppending() {
 		return countOccurencesOfElevatorAppending;
 	}
 
-	public synchronized void setCountOccurencesOfElevatorAppending(
+	public static synchronized void setCountOccurencesOfElevatorAppending(
 			int countOccurencesOfElevatorAppending) {
-		this.countOccurencesOfElevatorAppending = countOccurencesOfElevatorAppending;
+		CentralDispatcher.countOccurencesOfElevatorAppending = countOccurencesOfElevatorAppending;
 	}
 
-	public synchronized int getNumberOfEmptySpacesToUseSameFloorVariable() {
+	public static synchronized int getNumberOfEmptySpacesToUseSameFloorVariable() {
 		return numberOfEmptySpacesToUseSameFloorVariable;
 	}
 
-	public synchronized void setNumberOfEmptySpacesToUseSameFloorVariable(
+	public static synchronized void setNumberOfEmptySpacesToUseSameFloorVariable(
 			int numberOfEmptySpacesToUseSameFloorVariable) {
-		this.numberOfEmptySpacesToUseSameFloorVariable = numberOfEmptySpacesToUseSameFloorVariable;
+		CentralDispatcher.numberOfEmptySpacesToUseSameFloorVariable = numberOfEmptySpacesToUseSameFloorVariable;
 	}
 
-	public synchronized int getNumberOfEmptySpacesToUseGoingToVariable() {
+	public static synchronized int getNumberOfEmptySpacesToUseGoingToVariable() {
 		return numberOfEmptySpacesToUseGoingToVariable;
 	}
 
-	public synchronized void setNumberOfEmptySpacesToUseGoingToVariable(
+	public static synchronized void setNumberOfEmptySpacesToUseGoingToVariable(
 			int numberOfEmptySpacesToUseGoingToVariable) {
-		this.numberOfEmptySpacesToUseGoingToVariable = numberOfEmptySpacesToUseGoingToVariable;
+		CentralDispatcher.numberOfEmptySpacesToUseGoingToVariable = numberOfEmptySpacesToUseGoingToVariable;
 	}
 
-	public synchronized int getNumberOfEmptySpacesToUsePassingByVariable() {
+	public static synchronized int getNumberOfEmptySpacesToUsePassingByVariable() {
 		return numberOfEmptySpacesToUsePassingByVariable;
 	}
 
-	public synchronized void setNumberOfEmptySpacesToUsePassingByVariable(
+	public static synchronized void setNumberOfEmptySpacesToUsePassingByVariable(
 			int numberOfEmptySpacesToUsePassingByVariable) {
-		this.numberOfEmptySpacesToUsePassingByVariable = numberOfEmptySpacesToUsePassingByVariable;
+		CentralDispatcher.numberOfEmptySpacesToUsePassingByVariable = numberOfEmptySpacesToUsePassingByVariable;
 	}
 
-	public synchronized int getCapacityThresholdVariable() {
+	public static synchronized int getCapacityThresholdVariable() {
 		return capacityThresholdVariable;
 	}
 
-	public synchronized void setCapacityThresholdVariable(int capacityThresholdVariable) {
-		this.capacityThresholdVariable = capacityThresholdVariable;
+	public static synchronized void setCapacityThresholdVariable(int capacityThresholdVariable) {
+		CentralDispatcher.capacityThresholdVariable = capacityThresholdVariable;
 	}
 
-	public synchronized int getNumberOfFloorsDifference() {
+	public static synchronized int getNumberOfFloorsDifference() {
 		return numberOfFloorsDifference;
 	}
 
-	public synchronized void setNumberOfFloorsDifference(int numberOfFloorsDifference) {
-		this.numberOfFloorsDifference = numberOfFloorsDifference;
+	public static synchronized void setNumberOfFloorsDifference(int numberOfFloorsDifference) {
+		CentralDispatcher.numberOfFloorsDifference = numberOfFloorsDifference;
 	}
 
-	public synchronized int getMaxDistanceForUntaskedVariable() {
+	public static synchronized int getMaxDistanceForUntaskedVariable() {
 		return maxDistanceForUntaskedVariable;
 	}
 
-	public synchronized void setMaxDistanceForUntaskedVariable(int maxDistanceForUntaskedVariable) {
-		this.maxDistanceForUntaskedVariable = maxDistanceForUntaskedVariable;
+	public static synchronized void setMaxDistanceForUntaskedVariable(int maxDistanceForUntaskedVariable) {
+		CentralDispatcher.maxDistanceForUntaskedVariable = maxDistanceForUntaskedVariable;
 	}
 
-	public synchronized int getCountUntaskedVariable() {
+	public static synchronized int getCountUntaskedVariable() {
 		return countUntaskedVariable;
 	}
 
-	public synchronized void setCountUntaskedVariable(int countUntaskedVariable) {
-		this.countUntaskedVariable = countUntaskedVariable;
+	public static synchronized void setCountUntaskedVariable(int countUntaskedVariable) {
+		CentralDispatcher.countUntaskedVariable = countUntaskedVariable;
 	}
-	public synchronized double getTimeFactor() {
+	public static synchronized double getTimeFactor() {
 		return timeFactor;
 	}
 
-	public synchronized void setTimeFactor(double timeFactor) {
-		this.timeFactor = timeFactor;
+	public static synchronized void setTimeFactor(double timeFactor) {
+		CentralDispatcher.timeFactor = timeFactor;
 	}
 
-	public synchronized IndividualSimulationRunData getIsrd() {
+	public static synchronized IndividualSimulationRunData getIsrd() {
 		return isrd;
 	}
 
-	public synchronized void setIsrd(IndividualSimulationRunData isrd) {
-		this.isrd = isrd;
+	public static synchronized void setIsrd(IndividualSimulationRunData isrd) {
+		CentralDispatcher.isrd = isrd;
 	}
 
-	public synchronized Integer[] getDistributionOfUntaskedElevators() {
+	public static synchronized Integer[] getDistributionOfUntaskedElevators() {
 		return distributionOfUntaskedElevators;
 	}
 
-	public synchronized void setDistributionOfUntaskedElevators(
+	public static synchronized void setDistributionOfUntaskedElevators(
 			Integer[] distributionOfUntaskedElevators) {
-		this.distributionOfUntaskedElevators = distributionOfUntaskedElevators;
+		CentralDispatcher.distributionOfUntaskedElevators = distributionOfUntaskedElevators;
 	}
 
-	public synchronized ElevatorAnimation getEa() {
+	public static synchronized ElevatorAnimation getEa() {
 		return ea;
 	}
 
-	public synchronized void setEa(ElevatorAnimation ea) {
-		this.ea = ea;
+	public static synchronized void setEa(ElevatorAnimation ea) {
+		CentralDispatcher.ea = ea;
 	}
 
-	public synchronized MemoryMgt getMemoryMgt() {
+	public static synchronized MemoryMgt getMemoryMgt() {
 		return memoryMgt;
 	}
 
-	public synchronized void setMemoryMgt(MemoryMgt memoryMgt) {
-		this.memoryMgt = memoryMgt;
+	public static synchronized void setMemoryMgt(MemoryMgt memoryMgt) {
+		CentralDispatcher.memoryMgt = memoryMgt;
 	}
 
-	public synchronized int getIntegerOne() {
+	public static synchronized int getIntegerOne() {
 		return integerOne;
 	}
 
-	public synchronized void setIntegerOne(int integerOne) {
-		this.integerOne = integerOne;
+	public static synchronized void setIntegerOne(int integerOne) {
+		CentralDispatcher.integerOne = integerOne;
 	}
 
-	public synchronized int getCountNull() {
+	public static synchronized int getCountNull() {
 		return countNull;
 	}
 
-	public synchronized void setCountNull(int countNull) {
-		this.countNull = countNull;
+	public static synchronized void setCountNull(int countNull) {
+		CentralDispatcher.countNull = countNull;
 	}
 
-	public synchronized int getCountOccurencesFindClosestUntaskedElevator() {
+	public static synchronized int getCountOccurencesFindClosestUntaskedElevator() {
 		return countOccurencesFindClosestUntaskedElevator;
 	}
 
-	public synchronized void setCountOccurencesFindClosestUntaskedElevator(
+	public static synchronized void setCountOccurencesFindClosestUntaskedElevator(
 			int countOccurencesFindClosestUntaskedElevator) {
-		this.countOccurencesFindClosestUntaskedElevator = countOccurencesFindClosestUntaskedElevator;
+		CentralDispatcher.countOccurencesFindClosestUntaskedElevator = countOccurencesFindClosestUntaskedElevator;
 	}
 
-	public synchronized int getCountOccurencesOfElevatorOnSameFloor() {
+	public static synchronized int getCountOccurencesOfElevatorOnSameFloor() {
 		return countOccurencesOfElevatorOnSameFloor;
 	}
 
-	public synchronized void setCountOccurencesOfElevatorOnSameFloor(
+	public static synchronized void setCountOccurencesOfElevatorOnSameFloor(
 			int countOccurencesOfElevatorOnSameFloor) {
-		this.countOccurencesOfElevatorOnSameFloor = countOccurencesOfElevatorOnSameFloor;
+		CentralDispatcher.countOccurencesOfElevatorOnSameFloor = countOccurencesOfElevatorOnSameFloor;
 	}
 
-	public synchronized int getCountOccurencesOfElevatorOf50PercentUntasked() {
+	public static synchronized int getCountOccurencesOfElevatorOf50PercentUntasked() {
 		return countOccurencesOfElevatorOfRestrictiveUntasked;
 	}
 
-	public synchronized void setCountOccurencesOfElevatorOf50PercentUntasked(
+	public static synchronized void setCountOccurencesOfElevatorOf50PercentUntasked(
 			int countOccurencesOfElevatorOf50PercentUntasked) {
-		this.countOccurencesOfElevatorOfRestrictiveUntasked = countOccurencesOfElevatorOf50PercentUntasked;
+		CentralDispatcher.countOccurencesOfElevatorOfRestrictiveUntasked = countOccurencesOfElevatorOf50PercentUntasked;
 	}
 
-	public synchronized int getCountOccurencesOfElevatorAlreadyGoingToFloor() {
+	public static synchronized int getCountOccurencesOfElevatorAlreadyGoingToFloor() {
 		return countOccurencesOfElevatorAlreadyGoingToFloor;
 	}
 
-	public synchronized void setCountOccurencesOfElevatorAlreadyGoingToFloor(
+	public static synchronized void setCountOccurencesOfElevatorAlreadyGoingToFloor(
 			int countOccurencesOfElevatorAlreadyGoingToFloor) {
-		this.countOccurencesOfElevatorAlreadyGoingToFloor = countOccurencesOfElevatorAlreadyGoingToFloor;
+		CentralDispatcher.countOccurencesOfElevatorAlreadyGoingToFloor = countOccurencesOfElevatorAlreadyGoingToFloor;
 	}
 
-	public synchronized int getCountOccurencesOfElevatorGoingPastFloor() {
+	public static synchronized int getCountOccurencesOfElevatorGoingPastFloor() {
 		return countOccurencesOfElevatorGoingPastFloor;
 	}
 
-	public synchronized void setCountOccurencesOfElevatorGoingPastFloor(
+	public static synchronized void setCountOccurencesOfElevatorGoingPastFloor(
 			int countOccurencesOfElevatorGoingPastFloor) {
-		this.countOccurencesOfElevatorGoingPastFloor = countOccurencesOfElevatorGoingPastFloor;
+		CentralDispatcher.countOccurencesOfElevatorGoingPastFloor = countOccurencesOfElevatorGoingPastFloor;
 	}
 
-	public synchronized int getNumberOfFloors() {
+	public static synchronized int getNumberOfFloors() {
 		return numberOfFloors;
 	}
 
-	public synchronized void setNumberOfFloors(int numberOfFloors) {
-		this.numberOfFloors = numberOfFloors;
+	public static synchronized void setNumberOfFloors(int numberOfFloors) {
+		CentralDispatcher.numberOfFloors = numberOfFloors;
 	}
 
-	public synchronized boolean[] getIsSomeoneWaitingOnFloor() {
+	public static synchronized boolean[] getIsSomeoneWaitingOnFloor() {
 		return isSomeoneWaitingOnFloor;
 	}
 
-	public synchronized void setIsSomeoneWaitingOnFloor(
+	public static synchronized void setIsSomeoneWaitingOnFloor(
 			boolean[] isSomeoneWaitingOnFloor) {
-		this.isSomeoneWaitingOnFloor = isSomeoneWaitingOnFloor;
+		CentralDispatcher.isSomeoneWaitingOnFloor = isSomeoneWaitingOnFloor;
 	}
 
-	public synchronized double[] getCurrentTimeOfWaiting() {
+	public static synchronized double[] getCurrentTimeOfWaiting() {
 		return currentTimeOfWaiting;
 	}
 
-	public synchronized void setCurrentTimeOfWaiting(
+	public static synchronized void setCurrentTimeOfWaiting(
 			double[] currentTimeOfWaiting) {
-		this.currentTimeOfWaiting = currentTimeOfWaiting;
+		CentralDispatcher.currentTimeOfWaiting = currentTimeOfWaiting;
 	}
 
-	public synchronized int getNumberOfElevators() {
+	public static synchronized int getNumberOfElevators() {
 		return numberOfElevators;
 	}
 
-	public synchronized void setNumberOfElevators(int numberOfElevators) {
-		this.numberOfElevators = numberOfElevators;
+	public static synchronized void setNumberOfElevators(int numberOfElevators) {
+		CentralDispatcher.numberOfElevators = numberOfElevators;
 	}
 
-	public synchronized Elevator[] getElevatorArray() {
+	public static synchronized Elevator[] getElevatorArray() {
 		return elevatorArray;
 	}
 
-	public synchronized void setElevatorArray(Elevator[] elevatorArray) {
-		this.elevatorArray = elevatorArray;
+	public static synchronized void setElevatorArray(Elevator[] elevatorArray) {
+		CentralDispatcher.elevatorArray = elevatorArray;
 	}
 
-	public synchronized FloorOfBuilding[] getFloorArray() {
+	public static synchronized FloorOfBuilding[] getFloorArray() {
 		return floorArray;
 	}
 
-	public synchronized void setFloorArray(FloorOfBuilding[] floorArray) {
-		this.floorArray = floorArray;
+	public static synchronized void setFloorArray(FloorOfBuilding[] floorArray) {
+		CentralDispatcher.floorArray = floorArray;
 	}
 
-	public synchronized Thread[] getElevatorThreadArray() {
+	public static synchronized Thread[] getElevatorThreadArray() {
 		return elevatorThreadArray;
 	}
 
-	public synchronized void setElevatorThreadArray(Thread[] elevatorThreadArray) {
-		this.elevatorThreadArray = elevatorThreadArray;
+	public static synchronized void setElevatorThreadArray(Thread[] elevatorThreadArray) {
+		CentralDispatcher.elevatorThreadArray = elevatorThreadArray;
 	}
 
-	public synchronized Thread[] getFloorThreadArray() {
+	public static synchronized Thread[] getFloorThreadArray() {
 		return floorThreadArray;
 	}
 
-	public synchronized void setFloorThreadArray(Thread[] floorThreadArray) {
-		this.floorThreadArray = floorThreadArray;
+	public static synchronized void setFloorThreadArray(Thread[] floorThreadArray) {
+		CentralDispatcher.floorThreadArray = floorThreadArray;
 	}
 
-	public synchronized boolean isFirstLoop() {
+	public static synchronized boolean isFirstLoop() {
 		return firstLoop;
 	}
 
-	public synchronized void setFirstLoop(boolean firstLoop) {
-		this.firstLoop = firstLoop;
+	public static synchronized void setFirstLoop(boolean firstLoop) {
+		CentralDispatcher.firstLoop = firstLoop;
 	}
 
-	public synchronized boolean isKeepLooping() {
+	public static synchronized boolean isKeepLooping() {
 		return keepLooping;
 	}
 
-	public synchronized void setKeepLooping(boolean keepLooping) {
-		this.keepLooping = keepLooping;
+	public static synchronized void setKeepLooping(boolean keepLooping) {
+		CentralDispatcher.keepLooping = keepLooping;
 	}
 
-	public synchronized double getCurrentTime() {
+	public static synchronized double getCurrentTime() {
 		return currentTime;
 	}
 
-	public synchronized void setCurrentTime(double currentTime) {
-		this.currentTime = currentTime;
+	public static synchronized void setCurrentTime(double currentTime) {
+		CentralDispatcher.currentTime = currentTime;
 	}
 
-	public synchronized Vector<ArrivalGroup> getRequestArray() {
+	public static synchronized Vector<ArrivalGroup> getRequestArray() {
 		return requestArray;
 	}
 	
-	public synchronized ArrivalGroup getNextRequestSync(){
-		if(this.getRequestArray().size() > 0){
-			return this.getRequestArray().get(0);
+	public static synchronized ArrivalGroup getNextRequestSync(){
+		
+		if(CentralDispatcher.getRequestArray().size() > 0){
+			return CentralDispatcher.getRequestArray().get(0);
 		}
 		return null;
 	}
 
-	public synchronized void setRequestArray(
+	public static synchronized void setRequestArray(
 			Vector<ArrivalGroup> requestArray) {
-		this.requestArray = requestArray;
+		CentralDispatcher.requestArray = requestArray;
 	}
 
 	public CentralDispatcher(int runNumber, int numberOfFloors, int numberOfElevators, int capacityVariable, int distanceAlreadyGoingVariable, int appendDistanceVariable,
@@ -430,32 +481,49 @@ public class CentralDispatcher {
 			int capacityThresholdVariable, double timeFactor)
 			throws InterruptedException {
 		
-		this.setStartDate(new Date());
-		this.numberOfFloors = numberOfFloors;
-		this.numberOfElevators = numberOfElevators;
-		this.capacityOfElevator = capacityVariable;
-		this.timeFactor = timeFactor;
-		this.numberOfEmptySpacesToUseGoingToVariable = numberOfEmptySpacesToUseGoingToVariable;
-		this.capacityThresholdVariable = capacityThresholdVariable;
-		this.numberOfEmptySpacesToUseSameFloorVariable = numberOfEmptySpacesToUseSameFloorVariable;
-		this.numberOfEmptySpacesToUsePassingByVariable = numberOfEmptySpacesToUsePassingByVariable;
-		this.numberOfFloorsDifference = numberOfFloorsDifference;
-		this.maxDistanceForUntaskedVariable = maxDistanceForUntaskedVariable;
-		this.countUntaskedVariable = countUntaskedVariable;
-		this.appendDistanceVariable = appendDistanceVariable;
-		this.distanceAlreadyGoingVariable = distanceAlreadyGoingVariable;
-		this.runNumber = runNumber;
+		CentralDispatcher.setStartDate(new Date());
+		CentralDispatcher.numberOfFloors = numberOfFloors;
+		CentralDispatcher.numberOfElevators = numberOfElevators;
+		CentralDispatcher.capacityOfElevator = capacityVariable;
+		CentralDispatcher.timeFactor = timeFactor;
+		CentralDispatcher.numberOfEmptySpacesToUseGoingToVariable = numberOfEmptySpacesToUseGoingToVariable;
+		CentralDispatcher.capacityThresholdVariable = capacityThresholdVariable;
+		CentralDispatcher.numberOfEmptySpacesToUseSameFloorVariable = numberOfEmptySpacesToUseSameFloorVariable;
+		CentralDispatcher.numberOfEmptySpacesToUsePassingByVariable = numberOfEmptySpacesToUsePassingByVariable;
+		CentralDispatcher.numberOfFloorsDifference = numberOfFloorsDifference;
+		CentralDispatcher.maxDistanceForUntaskedVariable = maxDistanceForUntaskedVariable;
+		CentralDispatcher.countUntaskedVariable = countUntaskedVariable;
+		CentralDispatcher.appendDistanceVariable = appendDistanceVariable;
+		CentralDispatcher.distanceAlreadyGoingVariable = distanceAlreadyGoingVariable;
+		CentralDispatcher.runNumber = runNumber;
 
-		this.sds = new SQLDataServer();
+		
+		floorTruth = new Integer[getNumberOfFloors()][2];
+		for(int i = 0; i < getNumberOfFloors(); i++){
+			for(int j = 0; j < 2; j++){
+				if(i == 0 && j == 1){
+					floorTruth[i][j] = null;
+					floorTruth[i][j] = new Integer(0);
+				}
+				else if(i == getNumberOfFloors() - 1 && j == 0){
+					//floorTruth[i][j] = null;
+					floorTruth[i][j] = new Integer(0);
+				}
+				else{
+				floorTruth[i][j] = new Integer(0);
+				}
+				}
+		}
+		CentralDispatcher.sds = new SQLDataServer();
 		
 		initializeTables();
 		
 		distributionOfUntaskedElevators = new Integer[numberOfFloors];
-		for (int i = 0; i < this.distributionOfUntaskedElevators.length; i++) {
-			this.distributionOfUntaskedElevators[i] = 0;
+		for (int i = 0; i < CentralDispatcher.distributionOfUntaskedElevators.length; i++) {
+			CentralDispatcher.distributionOfUntaskedElevators[i] = 0;
 		}
 
-		eca = new ElevatorComponentAnimation(this);
+		eca = new ElevatorComponentAnimation();
 		eca.setVisible(true);
 		
 		Thread.sleep(2500);
@@ -469,45 +537,58 @@ public class CentralDispatcher {
 			loop();
 		}
 
-//		SwingWorker sw = new SwingWork(this);
-//		sw.execute();
 		setEndDate(new Date());
-		isrd = new IndividualSimulationRunData(this);
+		isrd = new IndividualSimulationRunData();
 		
 	}
 	
-	private void initializeTables(){
+   public static synchronized void addToRequestArray(ArrivalGroup ag){
+		
+
+		for(int i = 0; i < CentralDispatcher.getRequestArray().size(); i++){
+			if(CentralDispatcher.getRequestArray().get(i).getStartFloor() == ag.getStartFloor() && CentralDispatcher.getRequestArray().get(i).getDirection().equals(ag.getDirection())){
+				return;
+			}
+		}
+		CentralDispatcher.getRequestArray().add(ag);
+	}
+   
+	
+	private static void initializeTables(){
 		String sql = "truncate table debugging_table";
 		sds.execute(sql);
 	}
 
-	public void insertIntoDebuggingTable(int runNumber, int numberOfFloors, int numOfElevators,String problem, double currentTime, String classname) {
+	public static  void insertIntoDebuggingTable(int runNumber, int numberOfFloors, int numOfElevators,String problem, double currentTime, String classname) {
 		String sql = "insert into debugging_table values('" + runNumber + "','" + numberOfFloors + "','" + numOfElevators + "','" + problem + "','" + currentTime + "','" + classname + "')";
 		sds.execute(sql);
 	}
 
-	private void initialize() {
-		this.elevatorArray = new Elevator[numberOfElevators];
-		this.elevatorThreadArray = new Thread[numberOfElevators];
-		this.floorArray = new FloorOfBuilding[numberOfFloors];
-		this.floorThreadArray = new Thread[numberOfFloors];
-		this.requestArray = new Vector<ArrivalGroup>();
-
+	private static void initialize() {
+		
+		ra = new RequestArray();
+		
+		CentralDispatcher.elevatorArray = new Elevator[numberOfElevators];
+		CentralDispatcher.elevatorThreadArray = new Thread[numberOfElevators];
+		CentralDispatcher.floorArray = new FloorOfBuilding[numberOfFloors];
+		CentralDispatcher.floorThreadArray = new Thread[numberOfFloors];
+		CentralDispatcher.requestArray = RequestArray.requestArray;
+		
 		for (int i = 0; i < numberOfElevators; i++) {
 
-			elevatorArray[i] = new Elevator(this, 0, i, this.getCapacityOfElevator(), 6, 2, 3,
-					this.timeFactor, 2000, 2000, this.capacityThresholdVariable);
+			elevatorArray[i] = new Elevator(0, i, CentralDispatcher.getCapacityOfElevator(), 6, 2, 3,
+					CentralDispatcher.timeFactor, 2000, 2000, CentralDispatcher.capacityThresholdVariable);
 			elevatorThreadArray[i] = new Thread(elevatorArray[i]);
 		}
 
 		for (int j = 0; j < numberOfFloors; j++) {
 
-			floorArray[j] = new FloorOfBuilding(this, 60000, 3, j,
-					this.timeFactor);
+			floorArray[j] = new FloorOfBuilding(60000, 3, j,
+					CentralDispatcher.timeFactor);
 			floorThreadArray[j] = new Thread(floorArray[j]);
 		}
 
-		this.setStartOfSim(System.nanoTime() / 1000000);
+		CentralDispatcher.setStartOfSim(System.nanoTime() / 1000000);
 
 		for (int i = 0; i < numberOfElevators; i++) {
 			elevatorThreadArray[i].start();
@@ -517,62 +598,63 @@ public class CentralDispatcher {
 		}
 	}
 
-	private ArrivalGroup getNextRequest() throws InterruptedException {
+	private static ArrivalGroup getNextRequest() throws InterruptedException {
 		ArrivalGroup ag = null;
-		if (!this.getRequestArray().isEmpty()
-				&& this.getRequestArray().get(0) != null) {
-			ag = this.getRequestArray().get(0);
+		if (!CentralDispatcher.getRequestArray().isEmpty()
+				&& CentralDispatcher.getRequestArray().get(0) != null) {
+			ag = CentralDispatcher.getRequestArray().get(0);
 		} else {
-			Thread.sleep((long) (100 / this.timeFactor + 5));
+			Thread.sleep((long) (100 / CentralDispatcher.timeFactor + 5));
 			getNextRequest();
 		}
 		return ag;
 	}
 
-	private double getPercentageOfUntaskedElevators() {
+	private static double getPercentageOfUntaskedElevators() {
 
 		int count = 0;
-		for (int i = 0; i < this.getNumberOfElevators(); i++) {
-			if (!this.getElevatorArray()[i].isHasTask()) {
+		for (int i = 0; i < CentralDispatcher.getNumberOfElevators(); i++) {
+			if (!CentralDispatcher.getElevatorArray()[i].isHasTask()) {
 				count++;
 			}
 		}
 		double percentage = (double) count
-				/ (double) this.getNumberOfElevators();
+				/ (double) CentralDispatcher.getNumberOfElevators();
 		return percentage;
 	}
 
-	private int getNumberOfUntaskedElevators() {
+	private static int getNumberOfUntaskedElevators() {
 
 		int count = 0;
-		for (int i = 0; i < this.getNumberOfElevators(); i++) {
-			if (!this.getElevatorArray()[i].isHasTask()) {
+		for (int i = 0; i < CentralDispatcher.getNumberOfElevators(); i++) {
+			if (!CentralDispatcher.getElevatorArray()[i].isHasTask()) {
 				count++;
 			}
 		}
 		return count;
 	}
 
-	public Elevator findClosestUntaskedElevator(int nextFloor) {
+	public static Elevator findClosestUntaskedElevator(int nextFloor) {
 
-		int maxDistance = this.getNumberOfFloors();
+		int maxDistance = CentralDispatcher.getNumberOfFloors();
 		Elevator elevatorToUse = null;
 
-		for (int i = 0; i < this.getElevatorArray().length; i++) {
+		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
 
-			if (!this.getElevatorArray()[i].isHasTask()) {
-				if (Math.abs(this.getElevatorArray()[i].getCurrentFloor()
+			if (!CentralDispatcher.getElevatorArray()[i].isHasTask()) {
+				if (Math.abs(CentralDispatcher.getElevatorArray()[i].getCurrentFloor()
 						- nextFloor) < maxDistance) {
-					maxDistance = Math.abs(this.getElevatorArray()[i]
+					maxDistance = Math.abs(CentralDispatcher.getElevatorArray()[i]
 							.getCurrentFloor()
 							- nextFloor);
-					elevatorToUse = this.getElevatorArray()[i];
+					elevatorToUse = CentralDispatcher.getElevatorArray()[i];
+					//break;
 				}
 			}
 
 		}
 		if (elevatorToUse != null
-				&& maxDistance < this.maxDistanceForUntaskedVariable) {
+				&& maxDistance < CentralDispatcher.maxDistanceForUntaskedVariable) {
 			elevatorToUse.setHasTask(true);
 			return elevatorToUse;
 		}
@@ -580,27 +662,28 @@ public class CentralDispatcher {
 		return elevatorToUse;
 	}
 
-	public Elevator findClosestUntaskedElevatorLessRestrictive(int nextFloor) {
+	public static Elevator findClosestUntaskedElevatorLessRestrictive(int nextFloor) {
 
-		int maxDistance = this.getNumberOfFloors();
+		int maxDistance = CentralDispatcher.getNumberOfFloors();
 		Elevator elevatorToUse = null;
 
-		for (int i = 0; i < this.getElevatorArray().length; i++) {
+		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
 
-			if (!this.getElevatorArray()[i].isHasTask()) {
-				if (Math.abs(this.getElevatorArray()[i].getCurrentFloor()
+			if (!CentralDispatcher.getElevatorArray()[i].isHasTask()) {
+				if (Math.abs(CentralDispatcher.getElevatorArray()[i].getCurrentFloor()
 						- nextFloor) < maxDistance) {
-					maxDistance = Math.abs(this.getElevatorArray()[i]
+					maxDistance = Math.abs(CentralDispatcher.getElevatorArray()[i]
 							.getCurrentFloor()
 							- nextFloor);
-					elevatorToUse = this.getElevatorArray()[i];
+					elevatorToUse = CentralDispatcher.getElevatorArray()[i];
+					//break;
 				}
 			}
 
 		}
 		if (elevatorToUse != null /*
 								 * && maxDistance <
-								 * this.maxDistanceForUntaskedVariable
+								 * CentralDispatcher.maxDistanceForUntaskedVariable
 								 */) {
 			elevatorToUse.setHasTask(true);
 			return elevatorToUse;
@@ -609,115 +692,123 @@ public class CentralDispatcher {
 		return elevatorToUse;
 	}
 
-	private Elevator seeIfElevatorIsAlreadyGoingtoFloor(int nextFloor) {
+	private static Elevator seeIfElevatorIsAlreadyGoingtoFloor(int nextFloor) {
 	
 		Elevator elevatorToUse = null;
 		List<Integer> temp;
-		for (int i = 0; i < this.getElevatorArray().length; i++) {
-			temp = this.getElevatorArray()[i].getFloorsArray();
-			if ((this.getElevatorArray()[i].isHasTask() || this
+		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
+			temp = CentralDispatcher.getElevatorArray()[i].getFloorsArray();
+			if ((CentralDispatcher.getElevatorArray()[i].isHasTask() || CentralDispatcher
 					.getElevatorArray()[i].getFloorsArray().size() > 1)
-					&& this.getElevatorArray()[i]
-							.getCurrentNumberOfPeopleSpaces() > this.numberOfEmptySpacesToUseGoingToVariable) {
-				if (temp.contains(nextFloor) && Math.abs(this.getElevatorArray()[i].getCurrentFloor()- nextFloor) < distanceAlreadyGoingVariable) {
-					return elevatorToUse = this.getElevatorArray()[i];
+					&& CentralDispatcher.getElevatorArray()[i]
+							.getCurrentNumberOfPeopleSpaces() > CentralDispatcher.numberOfEmptySpacesToUseGoingToVariable) {
+				if (temp.contains(nextFloor) && Math.abs(CentralDispatcher.getElevatorArray()[i].getCurrentFloor()- nextFloor) < distanceAlreadyGoingVariable) {
+					return elevatorToUse = CentralDispatcher.getElevatorArray()[i];
 				}
 			}
 		}
 		return elevatorToUse;
 	}
 
-	private Elevator seeIfElevatorIsPassingByFloor(int nextFloor) {
+	private static Elevator seeIfElevatorIsPassingByFloor(int nextFloor) {
 
 		Elevator elevatorToUse = null;
 
-		for (int i = 0; i < this.getElevatorArray().length; i++) {
-			if (this.getElevatorArray()[i].isHasTask()
-					&& this.getElevatorArray()[i].isAvailable()
-					&& (this.getElevatorArray()[i].getCurrentFloor() + this.numberOfFloorsDifference) < nextFloor
-					&& this.getElevatorArray()[i].isGoingUp()
-					&& this.getElevatorArray()[i]
-							.getCurrentNumberOfPeopleSpaces() > this.numberOfEmptySpacesToUsePassingByVariable) {
-				return elevatorToUse = this.getElevatorArray()[i];
-			} else if (this.getElevatorArray()[i].isHasTask()
-					&& this.getElevatorArray()[i].isAvailable()
-					&& (this.getElevatorArray()[i].getCurrentFloor() - this.numberOfFloorsDifference) > nextFloor
-					&& this.getElevatorArray()[i].isGoingDown()
-					&& this.getElevatorArray()[i]
-							.getCurrentNumberOfPeopleSpaces() > this.numberOfEmptySpacesToUsePassingByVariable) {
+		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
+			if (CentralDispatcher.getElevatorArray()[i].isHasTask()
+					&& CentralDispatcher.getElevatorArray()[i].isAvailable()
+					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() + CentralDispatcher.numberOfFloorsDifference) < nextFloor
+					&& CentralDispatcher.getElevatorArray()[i].isGoingUp()
+					&& CentralDispatcher.getElevatorArray()[i]
+							.getCurrentNumberOfPeopleSpaces() > CentralDispatcher.numberOfEmptySpacesToUsePassingByVariable) {
+				return elevatorToUse = CentralDispatcher.getElevatorArray()[i];
+			} else if (CentralDispatcher.getElevatorArray()[i].isHasTask()
+					&& CentralDispatcher.getElevatorArray()[i].isAvailable()
+					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() - CentralDispatcher.numberOfFloorsDifference) > nextFloor
+					&& CentralDispatcher.getElevatorArray()[i].isGoingDown()
+					&& CentralDispatcher.getElevatorArray()[i]
+							.getCurrentNumberOfPeopleSpaces() > CentralDispatcher.numberOfEmptySpacesToUsePassingByVariable) {
 				
-				return elevatorToUse = this.getElevatorArray()[i];
+				return elevatorToUse = CentralDispatcher.getElevatorArray()[i];
 			}
 		}
 		return elevatorToUse;
 	}
 
-	private Elevator findElevatorToAppendFloorTo(int nextFloor) {
+	private static Elevator findElevatorToAppendFloorTo(int nextFloor) throws InterruptedException {
 
 		Elevator elevatorToUse = null;
 
-		for (int i = 0; i < this.getElevatorArray().length; i++) {
-			if (this.getElevatorArray()[i].isHasTask()
-					&& this.getElevatorArray()[i].isAvailable()
-					&& (this.getElevatorArray()[i].getCurrentFloor() + this.numberOfFloorsDifference) < nextFloor
-					&& this.getElevatorArray()[i].isGoingUp()
-					&& this.getElevatorArray()[i]
-							.getCurrentNumberOfPeopleSpaces() > this.numberOfEmptySpacesToUsePassingByVariable) {
-				int size = this.getElevatorArray()[i].getFloorsArray().size();
+		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
+			CentralDispatcher.getElevatorArray()[i].getFloorsArray().faLock();
+			if (CentralDispatcher.getElevatorArray()[i].isHasTask()
+					&& CentralDispatcher.getElevatorArray()[i].isAvailable()
+					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() + CentralDispatcher.numberOfFloorsDifference) < nextFloor
+					&& CentralDispatcher.getElevatorArray()[i].isGoingUp()
+					&& CentralDispatcher.getElevatorArray()[i]
+							.getCurrentNumberOfPeopleSpaces() > CentralDispatcher.numberOfEmptySpacesToUsePassingByVariable) {
+				
+				
+				int size = CentralDispatcher.getElevatorArray()[i].getFloorsArray().size();
 				if(size > 0){
-				if(this.getElevatorArray()[i].getFloorsArray().get(size-1) < nextFloor){
-				return elevatorToUse = this.getElevatorArray()[i];
+				if(CentralDispatcher.getElevatorArray()[i].getFloorsArray().get(size-1) < nextFloor){
+					CentralDispatcher.getElevatorArray()[i].getFloorsArray().faUnLock();
+				return elevatorToUse = CentralDispatcher.getElevatorArray()[i];
 				}
 				}
 				
-			} else if (this.getElevatorArray()[i].isHasTask()
-					&& this.getElevatorArray()[i].isAvailable()
-					&& (this.getElevatorArray()[i].getCurrentFloor() - this.numberOfFloorsDifference) > nextFloor
-					&& this.getElevatorArray()[i].isGoingDown()
-					&& this.getElevatorArray()[i]
-							.getCurrentNumberOfPeopleSpaces() > this.numberOfEmptySpacesToUsePassingByVariable) {
-				int size = this.getElevatorArray()[i].getFloorsArray().size();
+				//what's this below??...
+			} else if (CentralDispatcher.getElevatorArray()[i].isHasTask()
+					&& CentralDispatcher.getElevatorArray()[i].isAvailable()
+					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() - CentralDispatcher.numberOfFloorsDifference) > nextFloor
+					&& CentralDispatcher.getElevatorArray()[i].isGoingDown()
+					&& CentralDispatcher.getElevatorArray()[i]
+							.getCurrentNumberOfPeopleSpaces() > CentralDispatcher.numberOfEmptySpacesToUsePassingByVariable) {
+				int size = CentralDispatcher.getElevatorArray()[i].getFloorsArray().size();
 				if(size > 0){
-				if(this.getElevatorArray()[i].getFloorsArray().get(size-1) > nextFloor){
-					return elevatorToUse = this.getElevatorArray()[i];
+				if(CentralDispatcher.getElevatorArray()[i].getFloorsArray().get(size-1) > nextFloor){
+					CentralDispatcher.getElevatorArray()[i].getFloorsArray().faUnLock();
+					return elevatorToUse = CentralDispatcher.getElevatorArray()[i];
 					}
 				}
 			}
+			CentralDispatcher.getElevatorArray()[i].getFloorsArray().faUnLock();
 		}
+		
 		return elevatorToUse;
 	}
 
-	private Elevator checkToSeeIfElevatorAlreadyOnSameFloor(int nextFloor) {
+	private static Elevator checkToSeeIfElevatorAlreadyOnSameFloor(int nextFloor) {
 		Elevator elevatorToUse = null;
 
 		// first we try to find an empty/untasked elevator to use on the current floor
-		for (int i = 0; i < this.getElevatorArray().length; i++) {
-			if (this.getElevatorArray()[i].getCurrentFloor() == nextFloor
-					&& this.getElevatorArray()[i].isHasTask() == false
-					&& this.getElevatorArray()[i].isStoppedOnCurrentFloor()
-					&& this.getElevatorArray()[i]
-							.getCurrentNumberOfPeopleSpaces() > this.numberOfEmptySpacesToUseSameFloorVariable) {
+		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
+			if (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() == nextFloor
+					&& CentralDispatcher.getElevatorArray()[i].isHasTask() == false
+					&& CentralDispatcher.getElevatorArray()[i].isStoppedOnCurrentFloor()
+					&& CentralDispatcher.getElevatorArray()[i]
+							.getCurrentNumberOfPeopleSpaces() > CentralDispatcher.numberOfEmptySpacesToUseSameFloorVariable) {
 
-				if (this.getElevatorArray()[i].getCapacity() != this
+				if (CentralDispatcher.getElevatorArray()[i].getCapacity() != CentralDispatcher
 						.getElevatorArray()[i].getCurrentNumberOfPeopleSpaces()) {
 					
 					String problem = "Elevator capacity problem!!! Elevator has no task, but has people in it!!!";
-					insertIntoDebuggingTable(this.getRunNumber(),this.getNumberOfFloors(),this.getNumberOfElevators(),problem,this.getCurrentTime()/1000,this.getClass().getName());
+					insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,"CentralDispatcher");
 				}
 
-				elevatorToUse = this.getElevatorArray()[i];
+				elevatorToUse = CentralDispatcher.getElevatorArray()[i];
 				elevatorToUse.setHasTask(true);
 				return elevatorToUse;
 			}
 		}
 
 		// if there are no empty/untasked elevators on the current floor, passengers will look for a tasked elevator
-		for (int i = 0; i < this.getElevatorArray().length; i++) {
-			if (this.getElevatorArray()[i].getCurrentFloor() == nextFloor
-					&& this.getElevatorArray()[i].isStoppedOnCurrentFloor()
-					&& this.getElevatorArray()[i]
-							.getCurrentNumberOfPeopleSpaces() > this.numberOfEmptySpacesToUseSameFloorVariable) {
-				elevatorToUse = this.getElevatorArray()[i];
+		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
+			if (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() == nextFloor
+					&& CentralDispatcher.getElevatorArray()[i].isStoppedOnCurrentFloor()
+					&& CentralDispatcher.getElevatorArray()[i]
+							.getCurrentNumberOfPeopleSpaces() > CentralDispatcher.numberOfEmptySpacesToUseSameFloorVariable) {
+				elevatorToUse = CentralDispatcher.getElevatorArray()[i];
 				elevatorToUse.setHasTask(true);
 				return elevatorToUse;
 			}
@@ -726,34 +817,34 @@ public class CentralDispatcher {
 	}
 	
 
-	public void loop() throws InterruptedException {
+	public static void loop() throws InterruptedException {
 
 		if (memoryMgt.getCurrentPercentage() > 75) {
 			memoryMgt.cleanMemory();
 		}
 
-		this.setCurrentTime(System.nanoTime() / 1000000);
-		if (this.getCurrentTime() - this.getStartOfSim() > (int) (this.getLengthOfSim() / this.timeFactor)) {
-			this.setKeepLooping(false);
+		CentralDispatcher.setCurrentTime(System.nanoTime() / 1000000);
+		if (CentralDispatcher.getCurrentTime() - CentralDispatcher.getStartOfSim() > (int) (CentralDispatcher.getLengthOfSim() / CentralDispatcher.timeFactor)) {
+			CentralDispatcher.setKeepLooping(false);
 			return;
 		}
 		
 		//make sure all floors with people waiting are assigned an elevator
 		
-//		for(int i = 0; i < this.getFloorArray().length; i++){
-//			if(this.getFloorArray()[i].findOutIfThereIsGroupWaiting()){
+//		for(int i = 0; i < CentralDispatcher.getFloorArray().length; i++){
+//			if(CentralDispatcher.getFloorArray()[i].findOutIfThereIsGroupWaiting()){
 //				Vector<Integer> temp = null;
-//				for(int j = 0; j < this.getElevatorArray().length; j++){
-//					temp = this.getElevatorArray()[j].getFloorsArray();
-//					if(temp.contains(this.getFloorArray()[i].getFloorNumber())){
+//				for(int j = 0; j < CentralDispatcher.getElevatorArray().length; j++){
+//					temp = CentralDispatcher.getElevatorArray()[j].getFloorsArray();
+//					if(temp.contains(CentralDispatcher.getFloorArray()[i].getFloorNumber())){
 //						break;
 //					}
-//					this.getRequestArray().add(this.getFloorArray()[i].getArrivalGroupArray().get(0));
-//					String direction = this.getFloorArray()[i].getArrivalGroupArray().get(0).getDirection();
-//					if(this.getFloorArray()[i].getArrivalGroupArray().size()>1){
-//						for(int k = 1; k < this.getFloorArray()[i].getArrivalGroupArray().size(); k++){
-//							if(this.getFloorArray()[i].getArrivalGroupArray().get(k).isWaiting() && !this.getFloorArray()[i].getArrivalGroupArray().get(k).getDirection().equals(direction)){
-//								this.getRequestArray().add(this.getFloorArray()[i].getArrivalGroupArray().get(k));
+//					CentralDispatcher.getRequestArray().add(CentralDispatcher.getFloorArray()[i].getArrivalGroupArray().get(0));
+//					String direction = CentralDispatcher.getFloorArray()[i].getArrivalGroupArray().get(0).getDirection();
+//					if(CentralDispatcher.getFloorArray()[i].getArrivalGroupArray().size()>1){
+//						for(int k = 1; k < CentralDispatcher.getFloorArray()[i].getArrivalGroupArray().size(); k++){
+//							if(CentralDispatcher.getFloorArray()[i].getArrivalGroupArray().get(k).isWaiting() && !CentralDispatcher.getFloorArray()[i].getArrivalGroupArray().get(k).getDirection().equals(direction)){
+//								CentralDispatcher.getRequestArray().add(CentralDispatcher.getFloorArray()[i].getArrivalGroupArray().get(k));
 //								break;
 //							}
 //						}
@@ -764,12 +855,23 @@ public class CentralDispatcher {
 		
 		//if an elevator is near the top or bottom floor and is going up or down respectively, it can pass a floor then come back and swing to get it on the way back to the middle floors
 
-		ArrivalGroup ag = getNextRequest();
+	//	ra.ralock();
+		ArrivalGroup ag = getNextRequestSync();
+	//	ra.raUnlock();
+		
+		
+		
 		Elevator elevatorToUse = null;
 
 		if (ag == null) {
 			//countNull++;
 			return;
+		}
+		
+        if(ag.getDirection().equals("up")){
+		 	getFloorTruth()[ag.getStartFloor()][0] ++;
+		} else if(ag.getDirection().equals("down")){
+			getFloorTruth()[ag.getStartFloor()][1] ++;
 		}
 
 		// add ag on floor x + 1 to elevator that is going up to floor x, as
@@ -783,20 +885,24 @@ public class CentralDispatcher {
 		if (elevatorToUse != null) {
 			countOccurencesOfElevatorOnSameFloor++;
 			elevatorToUse.setHasTask(true);
-			this.getRequestArray().remove(0);
+		//	ra.ralock();
+			CentralDispatcher.getRequestArray().remove(0);
+		//	ra.raUnlock();
 			return;
 		}
 
 		// TYPE_TWO
 		int countUntasked = getNumberOfUntaskedElevators();
-		if (countUntasked > this.countUntaskedVariable) {
+		if (countUntasked > CentralDispatcher.countUntaskedVariable) {
 			elevatorToUse = findClosestUntaskedElevator(ag.getStartFloor());
 			if (elevatorToUse != null) {
 				countOccurencesOfElevatorOfRestrictiveUntasked++;
 				if(elevatorToUse.getCurrentFloor() != ag.getStartFloor()){
 				elevatorToUse.getFloorsArray().add(ag.getStartFloor());	
 				}
-				this.getRequestArray().remove(0);
+		//		ra.ralock();
+				CentralDispatcher.getRequestArray().remove(0);
+		//		ra.raUnlock();
 				elevatorToUse.setHasTask(true);
 				return;
 			}
@@ -806,7 +912,9 @@ public class CentralDispatcher {
 		elevatorToUse = seeIfElevatorIsAlreadyGoingtoFloor(ag.getStartFloor());
 		if (elevatorToUse != null) {
 			countOccurencesOfElevatorAlreadyGoingToFloor++;
-			this.getRequestArray().remove(0);
+		//	ra.ralock();
+			CentralDispatcher.getRequestArray().remove(0);
+		//	ra.raUnlock();
 			return;
 		}
 
@@ -816,12 +924,14 @@ public class CentralDispatcher {
 		if (elevatorToUse != null) {
 			countOccurencesOfElevatorGoingPastFloor++;
 			// we must sort the FloorsArray then add at the right index!
-			if (elevatorToUse.isAvailable()) {
+	//		if (elevatorToUse.isAvailable()) {
 				elevatorToUse.getFloorsArray().add(ag.getStartFloor());
 				elevatorToUse.setHasTask(true);
-				this.getRequestArray().remove(0);
+		//		ra.ralock();
+				CentralDispatcher.getRequestArray().remove(0);
+		//		ra.raUnlock();
 				return;
-			}
+		//	}
 		}
 
 		// TYPE_FIVE
@@ -829,12 +939,14 @@ public class CentralDispatcher {
 		if (elevatorToUse != null) {
 			countOccurencesOfElevatorAppending++;
 			// we must sort the FloorsArray then add at the right index!
-			if (elevatorToUse.isAvailable()) {
+		//	if (elevatorToUse.isAvailable()) {
 				elevatorToUse.getFloorsArray().add(ag.getStartFloor());
 				elevatorToUse.setHasTask(true);
-				this.getRequestArray().remove(0);
+		//		ra.ralock();
+				CentralDispatcher.getRequestArray().remove(0);
+		//		ra.raUnlock();
 				return;
-			}
+		//	}
 		}
 
 		// TYPE_SIX
@@ -848,6 +960,7 @@ public class CentralDispatcher {
 			}
 			elevatorToUse = findClosestUntaskedElevatorLessRestrictive(ag.getStartFloor());
 		}
+		
 		if (elevatorToUse.getCurrentFloor() < ag.getStartFloor()) {
 			elevatorToUse.setGoingUp(true);
 			elevatorToUse.setGoingDown(false);
@@ -859,7 +972,7 @@ public class CentralDispatcher {
 		} else if (elevatorToUse.getCurrentFloor() == ag.getStartFloor()) {
 			
 			String problem = "Closest UNTASKED elevator on same floor, but TYPE_SIX";
-			insertIntoDebuggingTable(this.getRunNumber(),this.getNumberOfFloors(),this.getNumberOfElevators(),problem,this.getCurrentTime()/1000,this.getClass().getName());
+			insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,"CentralDispatcher");
 	
 			
 			if (elevatorToUse.getCurrentFloor() > ag.getDesiredFloor()) {
@@ -873,46 +986,18 @@ public class CentralDispatcher {
 			}
 
 		} else {
-			String problem = "We should never get to this point...";
-			insertIntoDebuggingTable(this.getRunNumber(),this.getNumberOfFloors(),this.getNumberOfElevators(),problem,this.getCurrentTime()/1000,this.getClass().getName());
+			String problem = "We should never get to CentralDispatcher point...";
+			insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,"CentralDispatcher");
 	
 		}
 		countOccurencesFindClosestUntaskedElevator++;
 		elevatorToUse.setHasTask(true);
-		this.getRequestArray().remove(0);
+	//	ra.ralock();
+		CentralDispatcher.getRequestArray().remove(0);
+	//	ra.raUnlock();
 	}
 
-	public String getStartDate() {
-		// TODO Auto-generated method stub
-		return this.startDate.toString().replace("EDT", "").replace(" ", "");
-	}
 	
 	
-	private class SwingWork extends SwingWorker<Void,Void>{
-		
-		private CentralDispatcher cd = null;
-		
-		public SwingWork(CentralDispatcher cd){
-			this.cd = cd;
-		}
-
-		@Override
-		protected Void doInBackground() throws Exception {
-			while (keepLooping) {
-				loop();
-			}
-			return null;
-		}
-		
-		protected void done(){
-			setEndDate(new Date());
-			try {
-				isrd = new IndividualSimulationRunData(cd);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-	}
+	
 }

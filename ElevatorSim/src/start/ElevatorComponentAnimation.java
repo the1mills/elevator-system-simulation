@@ -5,6 +5,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -14,15 +16,16 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-public class ElevatorComponentAnimation extends JFrame implements Observer {
+public class ElevatorComponentAnimation extends JFrame implements Observer, ActionListener {
 
 	private BufferedImage buffimage = null;
-	private CentralDispatcher cd = null;
 	private Vector<JLabel> jlabelVector = null;
+	private Vector<JPanel> jpanelVector = null;
 	private JPanel panel = null;
 	private Insets insets = null;
 	private Vector<JLabel> floorJLabelVector = null;
@@ -36,12 +39,18 @@ public class ElevatorComponentAnimation extends JFrame implements Observer {
 	ImageIcon imgYellow;
 	ImageIcon imgGreen;
 	ImageIcon imgCyan;
+	private JButton pauseButton = new JButton("PAUSE");
+	private Integer width = null;
+	private Integer height = null;
 	
-	public ElevatorComponentAnimation(CentralDispatcher cd) {
+	public ElevatorComponentAnimation() {
 
 		super("Animation");
 		this.setSize(700, 700);
-		this.cd = cd;
+		
+		
+		
+		JLabel runNumberLabel = new JLabel(CentralDispatcher.getRunNumber().toString() + " / " + ElevatorSimulationMainController.numberOfRunsTotal);
 		
 		rootPanel = new JPanel();
 		rootPanel.setLayout(new BorderLayout());
@@ -49,6 +58,8 @@ public class ElevatorComponentAnimation extends JFrame implements Observer {
 		
 		headerPanel = new JPanel();
 		headerPanel.setBackground(Color.cyan);
+		headerPanel.add(runNumberLabel);
+		headerPanel.add(pauseButton);
 		sidePanel = new JPanel();
 		sidePanel.setBackground(Color.yellow);
 		aJPanelElevatorGrid = new JPanelElevatorGrid(this.getSize());
@@ -57,8 +68,11 @@ public class ElevatorComponentAnimation extends JFrame implements Observer {
 		rootPanel.add(headerPanel, BorderLayout.NORTH);
 		rootPanel.add(sidePanel, BorderLayout.EAST);
 		rootPanel.add(aJPanelElevatorGrid, BorderLayout.CENTER);
+		
+		aJPanelElevatorGrid.setBackground(Color.white);
 	
 		jlabelVector = new Vector<JLabel>();
+		jpanelVector = new Vector<JPanel>();
 		floorJLabelVector = new Vector<JLabel>();
 		panel = new JPanel();
 		panel.setLayout(null);
@@ -68,8 +82,8 @@ public class ElevatorComponentAnimation extends JFrame implements Observer {
 	    Insets insets = aJPanelElevatorGrid.getInsets();
 	    panel.setBounds(insets.left, insets.top, 700, 700);
 		
-		Integer width = (int) (((panel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)));
-		Integer height = (int)(((panel.getHeight() -200) / ((double) ElevatorSimulationMainController.numberOfFloors))) - 5;
+		width = (int) (((panel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)));
+		height = (int)(((panel.getHeight() -200) / ((double) ElevatorSimulationMainController.numberOfFloors))) - 5;
 		
 		try {
 			img = ImageIO.read(new File("src/start/3d-box.jpg"));
@@ -99,18 +113,30 @@ public class ElevatorComponentAnimation extends JFrame implements Observer {
 	 
 	    insets = panel.getInsets();
 
-		for (int i = 0; i < cd.getNumberOfElevators(); i++) {
+		for (int i = 0; i < CentralDispatcher.getNumberOfElevators(); i++) {
 			jlabelVector.add(new JLabel(imgBlue));
 			jlabelVector.get(i).setVisible(false);
 			panel.add(jlabelVector.get(i));
 			
 			jlabelVector.get(i).setBounds(insets.left + (int) ((50 + i* ((panel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)))),
-					insets.top + panel.getHeight() - 100 - (Integer) (1) * (panel.getHeight()-200)/this.cd.getNumberOfFloors(), imgBlue.getIconWidth(),
+					insets.top + panel.getHeight() - 100 - (Integer) (1) * (panel.getHeight()-200)/CentralDispatcher.getNumberOfFloors(), imgBlue.getIconWidth(),
 					imgBlue.getIconHeight());
 			jlabelVector.get(i).setVisible(true);
 		}
 
-		for (int i = 0; i < cd.getNumberOfFloors(); i++) {
+//	    for(int i = 0; i < CentralDispatcher.getNumberOfElevators(); i++){
+//	    	
+//	    	jpanelVector.add(new ElevatorImage(width,height,0,i));
+//	    	panel.add(jpanelVector.get(i));
+//	    	jpanelVector.get(i).setBounds(insets.left + (int) ((50 + i* ((panel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)))),
+//					insets.top + panel.getHeight() - 100 - (Integer) (1) * (panel.getHeight()-200)/CentralDispatcher.getNumberOfFloors(), width,
+//					height);
+//	    	jpanelVector.get(i).setBackground(Color.red);
+//			jpanelVector.get(i).setVisible(true);
+//	    }
+	    
+	    
+		for (int i = 0; i < CentralDispatcher.getNumberOfFloors(); i++) {
 
 			floorJLabelVector.add(new JLabel(""));
 			panel.add(floorJLabelVector.get(i));
@@ -119,6 +145,9 @@ public class ElevatorComponentAnimation extends JFrame implements Observer {
 							* ((panel.getHeight()-200) / ((double) ElevatorSimulationMainController.numberOfFloors))), 40, 20);
 
 		}
+		
+		pauseButton.addActionListener(this);
+		
 
 	}
 
@@ -143,17 +172,35 @@ public class ElevatorComponentAnimation extends JFrame implements Observer {
 				else if(arg1.equals(Color.pink)){
 					jlabelVector.get(((Elevator) arg0).getElevatorNumberId()).setIcon(imgPink);
 				}
+				
+				//jpanelVector.get(((Elevator) arg0).getElevatorNumberId()).setBackground((Color)arg1);
+				
+				
 			}
 			
 			if(arg1 instanceof Integer){
+//				
+//				jpanelVector.set(((Elevator) arg0).getElevatorNumberId(),new ElevatorImage(width,height,(Integer)arg1,((Elevator) arg0).getElevatorNumberId()));
+//				
+//				jpanelVector.get(((Elevator) arg0).getElevatorNumberId())
+//				.setLocation(
+//						jpanelVector.get(
+//								((Elevator) arg0).getElevatorNumberId())
+//								.getX(),
+//						panel.getHeight() - 100 - ((Integer) (arg1) + 1) * (panel.getHeight()-200)/CentralDispatcher.getNumberOfFloors());
+//		
+				
 			jlabelVector.get(((Elevator) arg0).getElevatorNumberId())
 					.setLocation(
 							jlabelVector.get(
 									((Elevator) arg0).getElevatorNumberId())
 									.getX(),
-							panel.getHeight() - 100 - ((Integer) (arg1) + 1) * (panel.getHeight()-200)/this.cd.getNumberOfFloors());
+							panel.getHeight() - 100 - ((Integer) (arg1) + 1) * (panel.getHeight()-200)/CentralDispatcher.getNumberOfFloors());
 			}
 			}
+		
+		
+		
 
 		if (arg0 instanceof FloorOfBuilding) {
 			
@@ -162,6 +209,25 @@ public class ElevatorComponentAnimation extends JFrame implements Observer {
 
 		}
 
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		
+		try {
+			if(CentralDispatcher.isSimulationPaused()){
+			CentralDispatcher.setSimulationPaused(false);
+			}
+			else{
+				CentralDispatcher.setSimulationPaused(true);
+			}
+			}
+		
+	catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+         
 	}
 
 }

@@ -155,15 +155,15 @@ public class ElevatorMainWindow extends JFrame {
 				    if (!source.getValueIsAdjusting()) {
 				        Integer fps = (int)source.getValue();
 				     
-				          textField.setText(fps.toString());
-				          txtMin.setBackground(Color.red);
+				     //     textField.setText(fps.toString());
+				      //    txtMin.setBackground(Color.red);
 				
 				    }
 				    else{
 				    	 Integer fps = (int)source.getValue();
 					     
-				          textField.setText(fps.toString());
-				          txtMin.setBackground(Color.red);
+				        //  textField.setText(fps.toString());
+				         // txtMin.setBackground(Color.red);
 				    }
 				}
 
