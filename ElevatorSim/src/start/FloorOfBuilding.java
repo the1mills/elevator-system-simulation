@@ -45,8 +45,6 @@ public class FloorOfBuilding extends Observable implements Runnable{
 			}
 			}
 		}
-		setChanged();
-		notifyObservers(count);
 		return count;
 	}
 	
@@ -156,6 +154,15 @@ public class FloorOfBuilding extends Observable implements Runnable{
 
 	private void loop() throws InterruptedException{
 		
+		 Integer countPplWaiting = this.getCurrentNumberWaiting();
+		 Integer countPplWaitingUp = this.getCurrentNumberWaitingToGoUp();
+		 Integer countPplWaitingDown = this.getCurrentNumberWaitingToGoDown();
+		
+		 String waiting = countPplWaiting.toString() + " " + countPplWaitingUp.toString() + " " + countPplWaitingDown.toString();
+		
+		 setChanged();
+		notifyObservers(waiting);
+			
 	
 		int randomFloor = (int)(Math.random()*CentralDispatcher.getNumberOfFloors());
 		if(randomFloor == this.getFloorNumber()){
@@ -234,7 +241,16 @@ public class FloorOfBuilding extends Observable implements Runnable{
 	
 		CentralDispatcher.addToRequestArray(ag);
 		getCurrentNumberWaiting();  // this will notify observers
-	//	CentralDispatcher.ra.raUnlock();
+	
+		 countPplWaiting = this.getCurrentNumberWaiting();
+		 countPplWaitingUp = this.getCurrentNumberWaitingToGoUp();
+		 countPplWaitingDown = this.getCurrentNumberWaitingToGoDown();
+		
+		 waiting = countPplWaiting.toString() + " " + countPplWaitingUp.toString() + " " + countPplWaitingDown.toString();
+		
+		setChanged();
+		notifyObservers(waiting);
+		
 	}
 	
 }

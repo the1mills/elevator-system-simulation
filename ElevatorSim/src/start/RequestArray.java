@@ -42,18 +42,18 @@ public class RequestArray implements Lock{
 			      wait();
 			    }
 			    raLock = true;
-			  //  lockedCount++;
+			    lockedCount++;
 			    lockedBy = callingThread;
 			    
 	 }
 	
 	public synchronized void raUnlock(){
 		if(Thread.currentThread() == this.lockedBy){
-			//lockedCount--;
-		//  if(lockedCount == 0){
+			lockedCount--;
+		  if(lockedCount == 0){
 		    raLock = false;
 		    notifyAll();
-	//	  }
+		  }
 		}
 	}
 			  

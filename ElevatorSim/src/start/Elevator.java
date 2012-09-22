@@ -149,6 +149,19 @@ public class Elevator extends Observable implements Runnable {
 		}
 		return this.getCapacity() - count;
 	}
+	
+	public synchronized Integer getNumberOfPassengers(){
+		Integer count = 0;
+		for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
+			if(this.getGroupsOfPassengers().get(i).isGotServedByElevator() == false){
+				for(int j = 0; j <this.getGroupsOfPassengers().get(i).getNumberOfPeopleInGroup(); j++){
+					count++;
+				}	
+			}	
+		}
+		return count;
+	}
+	
 
 	public synchronized void setCurrentNumberOfPeopleSpaces(int currentNumberOfPeopleSpaces) {
 		this.currentNumberOfPeopleSpaces = currentNumberOfPeopleSpaces;
@@ -180,9 +193,6 @@ public class Elevator extends Observable implements Runnable {
 
 	public synchronized int getNextFloor() {
 		
-		if(!this.getFloorsArray().isEmpty() && nextFloor != this.getFloorsArray().get(0)){
-			System.out.println("disparity");
-		}
 		return nextFloor;
 	}
 
@@ -451,7 +461,6 @@ public class Elevator extends Observable implements Runnable {
 	
 	private synchronized void checkToSeeIfPeopleOnFloorForUntaskedElevator() throws InterruptedException{
 		FloorOfBuilding fob = CentralDispatcher.getFloorArray()[this.getCurrentFloor()];
-		//fob.getArrivalGroupArray().agalock();
 		if(fob.findOutIfThereIsGroupWaiting()){
 			fob.getArrivalGroupArray().agalock();
 			boolean first = true;
@@ -468,6 +477,7 @@ public class Elevator extends Observable implements Runnable {
 						}
 						else{
 							System.out.println("SHIT");
+							///
 						}
 						first = false;
 					}
@@ -476,7 +486,6 @@ public class Elevator extends Observable implements Runnable {
 			}
 			fob.getArrivalGroupArray().agaUnLock();
 		}
-	//	fob.getArrivalGroupArray().agaUnLock();
 	}
 	
 	private synchronized FloorsArray copyArray(Vector<Integer> vectorToCopy){
@@ -524,12 +533,16 @@ public class Elevator extends Observable implements Runnable {
 		//add all desired floors of passengers to floorsarray
 		this.getFloorsArray().faLock();
 		for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
-			if(this.getGroupsOfPassengers().get(i).getCumulativeTimeOfRidingElevator() == 0 && !this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())){
+			if(this.getGroupsOfPassengers().get(i).getCumulativeTimeOfRidingElevator() == 0 || this.getGroupsOfPassengers().get(i).isGotServedByElevator() == false){ 
+					hasTask = true;
+			if(!this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())){
 				this.getFloorsArray().add(this.getGroupsOfPassengers().get(i).getDesiredFloor());
-				hasTask = true;
+				
 			}
 		}
+		}
 		this.getFloorsArray().faUnLock();
+		
 		
 		if(!hasTask || this.getFloorsArray().isEmpty()){
 			
@@ -541,30 +554,21 @@ public class Elevator extends Observable implements Runnable {
 			setChanged();
 			notifyObservers(Color.pink);
 			
+			Thread.sleep(10);
+			
+			setChanged();
+			notifyObservers(new String("E"+this.getNumberOfPassengers().toString()));
 			
 			checkToSeeIfPeopleOnFloorForUntaskedElevator();
 			
 			temp1[this.getCurrentFloor()] += 1;
 			if(temp1[this.getCurrentFloor()] >= 1){
 				boolean move = false;
-//				while(!hasTask && this.getCurrentFloor() > 0){
-//					if(move){
-//						break;
-//					}
-//					for(int i = 0; i < 10; i++){
-//					Thread.sleep((long)((this.getTravelTimePerFloor()/this.getTimeFactor())/10));
-//					if(hasTask){
-//						move = true;
-//						break;
-//					}
-//					}
-//					CentralDispatcher.getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.gray.lightGray);
-//					this.setCurrentFloor(this.getCurrentFloor()-1);
-//					CentralDispatcher.getEa().paint(g, this.getDrawWidth(), (int)(this.getDrawHeight()*this.getCurrentFloor() + this.getHeightConstant()), this.getDrawElevatorWidth(), this.getDrawElevatorHeight(), Color.red);
-//					
-//				}
+
+				// move elevators to floors with high demand even if nobody is there
 				
 			}
+			
 			for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
 				if(this.getGroupsOfPassengers().get(i).getCumulativeTimeOfRidingElevator() == 0 || !this.getGroupsOfPassengers().get(i).isGotServedByElevator()){
 					String problem = "Untasked elevator has passengers in it...possibly because while in the untasked loop, passengers were added...?";
@@ -575,25 +579,68 @@ public class Elevator extends Observable implements Runnable {
 					hasTask = true;
 				}
 			}
-			
-			if(this.getCurrentNumberOfPeopleSpaces() < this.getCapacity()){
-				//if we found a rider that somehow was hiding, return to take him to the right floor
-				hasTask = true;
-				return;
+			if(hasTask){
+			return;
 			}
 			
-			for(int i = 0; i < CentralDispatcher.getNumberOfFloors(); i++){
-				if( CentralDispatcher.getFloorArray()[i].getCurrentNumberWaiting() > 0 && CentralDispatcher.getFloorTruth()[i][0] < 1){
-					this.getFloorsArray().add(i);
-					this.hasTask = true;
-				    return;
+			
+			if( this.getCapacity() - this.getCurrentNumberOfPeopleSpaces()  != this.getNumberOfPassengers()){
+				String problem = "capacity problem - doesnt equal spaces and no of passengers";
+				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+		
+			}
+			
+//			if(this.getCurrentNumberOfPeopleSpaces() < this.getCapacity()){
+//				//if we found a rider that somehow was hiding, return to take him to the right floor
+//				hasTask = true;
+//				return;
+//			}
+			
+			
+			//below we find a floor with people waiting where no elevator is going to
+			int x = 0;
+			int y = 0;
+			int z = CentralDispatcher.getNumberOfFloors();
+			int m = 0;
+			int p = this.getCurrentFloor();
+			
+			while(m < z){
+				m++;
+				y = Math.abs(y);
+				y += 1;
+				y = y*-1;
+				x = p - y;
+				if(x < 0 || x > z -1){
+					
+					continue;
 				}
+				if( CentralDispatcher.getFloorArray()[x].getCurrentNumberWaiting() > 0 && CentralDispatcher.getFloorTruth()[x][0] < 1){
+					this.getFloorsArray().add(x);
+					 CentralDispatcher.floorTruth[x][0]++;
+					this.hasTask = true;
+				    break;
+				}
+				if(CentralDispatcher.getFloorArray()[x].getCurrentNumberWaiting() > 0 && CentralDispatcher.getFloorTruth()[x][1] < 1){
+					this.getFloorsArray().add(x);
+					 CentralDispatcher.floorTruth[x][1]++;
+				    this.hasTask = true;
+				    break;
+		      	}
 			}
+			
+			setChanged();
+			notifyObservers(new String("E"+this.getNumberOfPassengers().toString()));
+		
 		}
+		
 		
 		if(hasTask || !this.getFloorsArray().isEmpty()){
 			
+			
 			hasTask = true;
+			
+			setChanged();
+			notifyObservers("E"+this.getNumberOfPassengers().toString());
 			
 			for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
 				if(this.getGroupsOfPassengers().get(i).getCumulativeTimeOfRidingElevator() == 0 && !this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())){
@@ -675,6 +722,8 @@ public class Elevator extends Observable implements Runnable {
 						this.setNextFloor();
 					//	this.available = true;
 					}
+					
+					
 					
 					//here we look for floors that need help!
 					if(this.getCurrentNumberOfPeopleSpaces() > 3){
@@ -773,6 +822,7 @@ public class Elevator extends Observable implements Runnable {
 				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 			}
 			isStoppedOnCurrentFloor = true;
+			
 		
 			setChanged();
 			notifyObservers(Color.green);
@@ -794,7 +844,10 @@ public class Elevator extends Observable implements Runnable {
 				}
 			
 			
-			//UNLOAD PASSENGERS
+			setChanged();
+			notifyObservers("E"+this.getNumberOfPassengers().toString());
+			
+			//NOW, WE UNLOAD PASSENGERS
 			for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
 				if(this.getGroupsOfPassengers().get(i).getDesiredFloor() == this.getCurrentFloor() && this.getGroupsOfPassengers().get(i).isGotServedByElevator() == false){
 					this.getGroupsOfPassengers().get(i).setCumulativeTimeOfRidingElevator(System.nanoTime()/1000000 - this.getGroupsOfPassengers().get(i).getTimeFirstBoarding());
@@ -816,16 +869,26 @@ public class Elevator extends Observable implements Runnable {
 			FloorOfBuilding fob = CentralDispatcher.getFloorArray()[this.getCurrentFloor()];
 			
 			
-			//LOAD PASSENGERS
-			int countPplWaiting = fob.getCurrentNumberWaiting();
-			int countPplWaitingUp = fob.getCurrentNumberWaitingToGoUp();
-			int countPplWaitingDown = fob.getCurrentNumberWaitingToGoDown();
+			
+			//NOW WE LOAD NEW PASSENGERS
+			Integer countPplWaiting = fob.getCurrentNumberWaiting();
+			Integer countPplWaitingUp = fob.getCurrentNumberWaitingToGoUp();
+			Integer countPplWaitingDown = fob.getCurrentNumberWaitingToGoDown();
+			
+			String waiting = countPplWaiting.toString() + " " + countPplWaitingUp.toString() + " " + countPplWaitingDown.toString();
+			
+			setChanged();
+			notifyObservers(waiting);
 			
 			
 			if(countPplWaiting == 0){
+
+				CentralDispatcher.floorTruth[fob.getFloorNumber()][0]--;
+				CentralDispatcher.floorTruth[fob.getFloorNumber()][1]--;
 				//may still have a task if there are people in the elevator still, but there is nobody to load so we return.
 				return;
 			}
+			
 			//do something here if elevator is at capacity
 			//need to add code that checks to see if people have arrived to the floor during the time period the elevator was loading people!!!!
 					
@@ -887,6 +950,7 @@ public class Elevator extends Observable implements Runnable {
 			}
 			
 			
+			
 			if(countPplWaiting > 0){
 				
 				boolean goingUpNewGroup = false;
@@ -939,6 +1003,18 @@ public class Elevator extends Observable implements Runnable {
 				}
 				fob.getArrivalGroupArray().agaUnLock();
 			}
+			
+			setChanged();
+			notifyObservers(new String("E"+this.getNumberOfPassengers().toString()));
+			
+			countPplWaiting = fob.getCurrentNumberWaiting();
+			countPplWaitingUp = fob.getCurrentNumberWaitingToGoUp();
+			countPplWaitingDown = fob.getCurrentNumberWaitingToGoDown();
+			
+			waiting = countPplWaiting.toString() + " " + countPplWaitingUp.toString() + " " + countPplWaitingDown.toString();
+			
+			setChanged();
+			notifyObservers(waiting);
 			
 		}
 	}

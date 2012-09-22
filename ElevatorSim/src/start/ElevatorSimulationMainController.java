@@ -4,8 +4,8 @@ package start;
 public class ElevatorSimulationMainController {
 
 	private int runNumber;
-	public static int[] numberOfElevators = {2,16};
-	public static int numberOfFloors = 11;
+	public static int[] numberOfElevators = {13,16};
+	public static int numberOfFloors = 23;
 	private volatile long lengthOfSim;
 	private int[] timeFactor = {10,20,20};
 	private int[] totalServedArray;

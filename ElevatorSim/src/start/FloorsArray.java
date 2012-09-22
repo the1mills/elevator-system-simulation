@@ -30,18 +30,18 @@ public class FloorsArray extends Vector<Integer> {
 		      wait();
 		    }
 		  faLock = true;
-//		    lockedCount++;
+		    lockedCount++;
 		    lockedBy = callingThread;
 			    
 	 }
 	
 	public synchronized void faUnLock(){
 		if(Thread.currentThread() == this.lockedBy){
-//			lockedCount--;
-	//	  if(lockedCount == 0){
+			lockedCount--;
+		  if(lockedCount == 0){
 		    faLock = false;
 		    notifyAll();
-	//	  }
+		  }
 		}
 		  }
 	

@@ -49,7 +49,8 @@ public class CentralDispatcher{
 	private static Date startDate = null;
 	private static Date endDate = null;
 	private static volatile double startOfSim;
-	private static double lengthOfSim = 1500000;
+	//private static double lengthOfSim = 1500000;
+	private static double lengthOfSim = 500000;
 	private static volatile ElevatorComponentAnimation eca = null;
 	private static boolean simulationPaused = false;
 	public static volatile RequestArray ra = null;
@@ -81,19 +82,10 @@ public class CentralDispatcher{
 		CentralDispatcher.simulationPaused = simulationPaused;
 		if(CentralDispatcher.simulationPaused){
 			for(int i = 0; i < CentralDispatcher.getFloorThreadArray().length; i++){
-				CentralDispatcher.getFloorThreadArray()[i].sleep(50);	
+				CentralDispatcher.getFloorThreadArray()[i].sleep(200);	
 			}
 			for(int i = 0; i < CentralDispatcher.getElevatorThreadArray().length; i++){
-				CentralDispatcher.getFloorThreadArray()[i].sleep(50);	
-			}
-		
-		}
-		else{
-			for(int i = 0; i < CentralDispatcher.getFloorThreadArray().length; i++){
-				CentralDispatcher.getFloorThreadArray()[i].interrupt();	
-			}
-			for(int i = 0; i < CentralDispatcher.getElevatorThreadArray().length; i++){
-				CentralDispatcher.getFloorThreadArray()[i].interrupt();	
+				CentralDispatcher.getFloorThreadArray()[i].sleep(200);	
 			}
 			
 		}
@@ -501,18 +493,10 @@ public class CentralDispatcher{
 		floorTruth = new Integer[getNumberOfFloors()][2];
 		for(int i = 0; i < getNumberOfFloors(); i++){
 			for(int j = 0; j < 2; j++){
-				if(i == 0 && j == 1){
-					floorTruth[i][j] = null;
-					floorTruth[i][j] = new Integer(0);
-				}
-				else if(i == getNumberOfFloors() - 1 && j == 0){
-					//floorTruth[i][j] = null;
-					floorTruth[i][j] = new Integer(0);
-				}
-				else{
+				
 				floorTruth[i][j] = new Integer(0);
 				}
-				}
+				
 		}
 		CentralDispatcher.sds = new SQLDataServer();
 		
@@ -536,6 +520,14 @@ public class CentralDispatcher{
 		while (keepLooping) {
 			loop();
 		}
+		
+		for(int i = 0; i < CentralDispatcher.getFloorThreadArray().length; i++){
+			CentralDispatcher.getFloorThreadArray()[i].interrupt();	
+		}
+		for(int i = 0; i < CentralDispatcher.getElevatorThreadArray().length; i++){
+			CentralDispatcher.getFloorThreadArray()[i].interrupt();	
+		}
+		
 
 		setEndDate(new Date());
 		isrd = new IndividualSimulationRunData();
@@ -742,7 +734,6 @@ public class CentralDispatcher{
 		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
 			CentralDispatcher.getElevatorArray()[i].getFloorsArray().faLock();
 			if (CentralDispatcher.getElevatorArray()[i].isHasTask()
-					&& CentralDispatcher.getElevatorArray()[i].isAvailable()
 					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() + CentralDispatcher.numberOfFloorsDifference) < nextFloor
 					&& CentralDispatcher.getElevatorArray()[i].isGoingUp()
 					&& CentralDispatcher.getElevatorArray()[i]
@@ -759,7 +750,6 @@ public class CentralDispatcher{
 				
 				//what's this below??...
 			} else if (CentralDispatcher.getElevatorArray()[i].isHasTask()
-					&& CentralDispatcher.getElevatorArray()[i].isAvailable()
 					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() - CentralDispatcher.numberOfFloorsDifference) > nextFloor
 					&& CentralDispatcher.getElevatorArray()[i].isGoingDown()
 					&& CentralDispatcher.getElevatorArray()[i]

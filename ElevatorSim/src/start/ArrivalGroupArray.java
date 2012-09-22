@@ -11,18 +11,10 @@ public class ArrivalGroupArray extends Vector<ArrivalGroup>{
 	public boolean agaLock = false;
 	private int lockedCount = 0;
 	private Thread lockedBy = null;
-//	public static volatile Vector<ArrivalGroup> arrivalGroupArray = null;
-
-	
-//	public synchronized Vector<ArrivalGroup> getArrivalGroupArray() {
-//		return this;
-//	}
 
 
 	public ArrivalGroupArray(){
 		
-		
-//		arrivalGroupArray = new Vector<ArrivalGroup>();
 	}
 	
 	
