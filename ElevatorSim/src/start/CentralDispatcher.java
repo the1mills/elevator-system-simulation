@@ -21,7 +21,6 @@ public class CentralDispatcher{
 	private static boolean firstLoop = true;
 	private static boolean keepLooping = true;
 	private static volatile double currentTime;
-	private static volatile Vector<ArrivalGroup> requestArray;
 	private static int integerOne = 3;
 	private static int countNull = 0;
 	private static int countOccurencesOfElevatorOnSameFloor = 0;
@@ -330,13 +329,8 @@ public class CentralDispatcher{
 		CentralDispatcher.countOccurencesOfElevatorOnSameFloor = countOccurencesOfElevatorOnSameFloor;
 	}
 
-	public static synchronized int getCountOccurencesOfElevatorOf50PercentUntasked() {
+	public static synchronized int getCountOccurencesOfElevatorOfUntaskedLessRestrictive() {
 		return countOccurencesOfElevatorOfRestrictiveUntasked;
-	}
-
-	public static synchronized void setCountOccurencesOfElevatorOf50PercentUntasked(
-			int countOccurencesOfElevatorOf50PercentUntasked) {
-		CentralDispatcher.countOccurencesOfElevatorOfRestrictiveUntasked = countOccurencesOfElevatorOf50PercentUntasked;
 	}
 
 	public static synchronized int getCountOccurencesOfElevatorAlreadyGoingToFloor() {
@@ -447,8 +441,8 @@ public class CentralDispatcher{
 		CentralDispatcher.currentTime = currentTime;
 	}
 
-	public static synchronized Vector<ArrivalGroup> getRequestArray() {
-		return requestArray;
+	public static synchronized RequestArray getRequestArray() {
+		return ra;
 	}
 	
 	public static synchronized ArrivalGroup getNextRequestSync(){
@@ -460,8 +454,8 @@ public class CentralDispatcher{
 	}
 
 	public static synchronized void setRequestArray(
-			Vector<ArrivalGroup> requestArray) {
-		CentralDispatcher.requestArray = requestArray;
+			RequestArray requestArray) {
+		CentralDispatcher.ra = requestArray;
 	}
 
 	public CentralDispatcher(int runNumber, int numberOfFloors, int numberOfElevators, int capacityVariable, int distanceAlreadyGoingVariable, int appendDistanceVariable,
@@ -488,8 +482,51 @@ public class CentralDispatcher{
 		CentralDispatcher.appendDistanceVariable = appendDistanceVariable;
 		CentralDispatcher.distanceAlreadyGoingVariable = distanceAlreadyGoingVariable;
 		CentralDispatcher.runNumber = runNumber;
-
 		
+		keepLooping = true;
+
+	}
+	
+	public static void removeFloorsFromOtherElevatorsAfterVisited(int floorNum) throws InterruptedException{
+		
+		boolean next = false;
+		
+		for(int i =0; i< getNumberOfElevators(); i++){
+			
+			next = false;
+			Elevator x = getElevatorArray()[i];
+			FloorsArray y = x.getFloorsArray();
+			if(y.contains(floorNum)){
+				
+				for(int j = 0; j < x.getGroupsOfPassengers().size(); j++){
+					
+					if(x.getGroupsOfPassengers().get(j).getDesiredFloor() == floorNum){
+						next = true;
+						break;
+					}
+					
+				}
+				if(next){
+					next = false;
+					break;
+				}
+				
+				y.faLock();
+				for(int k = 0; k < y.size(); k++){
+					
+					if(y.get(k) == floorNum){
+						y.remove(k);
+					}
+				}
+				y.faUnLock();
+				
+			}
+		}
+		
+	}
+	
+	
+	public void kickOff() throws InterruptedException{
 		floorTruth = new Integer[getNumberOfFloors()][2];
 		for(int i = 0; i < getNumberOfFloors(); i++){
 			for(int j = 0; j < 2; j++){
@@ -498,6 +535,7 @@ public class CentralDispatcher{
 				}
 				
 		}
+		
 		CentralDispatcher.sds = new SQLDataServer();
 		
 		initializeTables();
@@ -510,23 +548,27 @@ public class CentralDispatcher{
 		eca = new ElevatorComponentAnimation();
 		eca.setVisible(true);
 		
-		Thread.sleep(2500);
+		Thread.sleep(250);
 		
 		initialize();
 		
 		Thread.sleep(2500);
 
+		CentralDispatcher.setStartOfSim(System.nanoTime() / 1000000);
 	
 		while (keepLooping) {
 			loop();
 		}
 		
-		for(int i = 0; i < CentralDispatcher.getFloorThreadArray().length; i++){
-			CentralDispatcher.getFloorThreadArray()[i].interrupt();	
-		}
-		for(int i = 0; i < CentralDispatcher.getElevatorThreadArray().length; i++){
-			CentralDispatcher.getFloorThreadArray()[i].interrupt();	
-		}
+		//wait for other threads to finish
+		
+		
+//		for(int i = 0; i < CentralDispatcher.getFloorThreadArray().length; i++){
+//			CentralDispatcher.getFloorThreadArray()[i].interrupt();	
+//		}
+//		for(int i = 0; i < CentralDispatcher.getElevatorThreadArray().length; i++){
+//			CentralDispatcher.getFloorThreadArray()[i].interrupt();	
+//		}
 		
 
 		setEndDate(new Date());
@@ -536,7 +578,6 @@ public class CentralDispatcher{
 	
    public static synchronized void addToRequestArray(ArrivalGroup ag){
 		
-
 		for(int i = 0; i < CentralDispatcher.getRequestArray().size(); i++){
 			if(CentralDispatcher.getRequestArray().get(i).getStartFloor() == ag.getStartFloor() && CentralDispatcher.getRequestArray().get(i).getDirection().equals(ag.getDirection())){
 				return;
@@ -564,7 +605,6 @@ public class CentralDispatcher{
 		CentralDispatcher.elevatorThreadArray = new Thread[numberOfElevators];
 		CentralDispatcher.floorArray = new FloorOfBuilding[numberOfFloors];
 		CentralDispatcher.floorThreadArray = new Thread[numberOfFloors];
-		CentralDispatcher.requestArray = RequestArray.requestArray;
 		
 		for (int i = 0; i < numberOfElevators; i++) {
 
@@ -575,12 +615,10 @@ public class CentralDispatcher{
 
 		for (int j = 0; j < numberOfFloors; j++) {
 
-			floorArray[j] = new FloorOfBuilding(60000, 3, j,
-					CentralDispatcher.timeFactor);
+			floorArray[j] = new FloorOfBuilding(60000, 3, j);
 			floorThreadArray[j] = new Thread(floorArray[j]);
 		}
 
-		CentralDispatcher.setStartOfSim(System.nanoTime() / 1000000);
 
 		for (int i = 0; i < numberOfElevators; i++) {
 			elevatorThreadArray[i].start();
@@ -684,7 +722,7 @@ public class CentralDispatcher{
 		return elevatorToUse;
 	}
 
-	private static Elevator seeIfElevatorIsAlreadyGoingtoFloor(int nextFloor) {
+	private static Elevator seeIfElevatorIsAlreadyGoingtoFloor(int nextFloor) throws InterruptedException {
 	
 		Elevator elevatorToUse = null;
 		List<Integer> temp;
@@ -708,14 +746,12 @@ public class CentralDispatcher{
 
 		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
 			if (CentralDispatcher.getElevatorArray()[i].isHasTask()
-					&& CentralDispatcher.getElevatorArray()[i].isAvailable()
 					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() + CentralDispatcher.numberOfFloorsDifference) < nextFloor
 					&& CentralDispatcher.getElevatorArray()[i].isGoingUp()
 					&& CentralDispatcher.getElevatorArray()[i]
 							.getCurrentNumberOfPeopleSpaces() > CentralDispatcher.numberOfEmptySpacesToUsePassingByVariable) {
 				return elevatorToUse = CentralDispatcher.getElevatorArray()[i];
 			} else if (CentralDispatcher.getElevatorArray()[i].isHasTask()
-					&& CentralDispatcher.getElevatorArray()[i].isAvailable()
 					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() - CentralDispatcher.numberOfFloorsDifference) > nextFloor
 					&& CentralDispatcher.getElevatorArray()[i].isGoingDown()
 					&& CentralDispatcher.getElevatorArray()[i]
@@ -732,7 +768,7 @@ public class CentralDispatcher{
 		Elevator elevatorToUse = null;
 
 		for (int i = 0; i < CentralDispatcher.getElevatorArray().length; i++) {
-			CentralDispatcher.getElevatorArray()[i].getFloorsArray().faLock();
+		//	CentralDispatcher.getElevatorArray()[i].getFloorsArray().faLock();
 			if (CentralDispatcher.getElevatorArray()[i].isHasTask()
 					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() + CentralDispatcher.numberOfFloorsDifference) < nextFloor
 					&& CentralDispatcher.getElevatorArray()[i].isGoingUp()
@@ -743,12 +779,11 @@ public class CentralDispatcher{
 				int size = CentralDispatcher.getElevatorArray()[i].getFloorsArray().size();
 				if(size > 0){
 				if(CentralDispatcher.getElevatorArray()[i].getFloorsArray().get(size-1) < nextFloor){
-					CentralDispatcher.getElevatorArray()[i].getFloorsArray().faUnLock();
+			//		CentralDispatcher.getElevatorArray()[i].getFloorsArray().faUnLock();
 				return elevatorToUse = CentralDispatcher.getElevatorArray()[i];
 				}
 				}
 				
-				//what's this below??...
 			} else if (CentralDispatcher.getElevatorArray()[i].isHasTask()
 					&& (CentralDispatcher.getElevatorArray()[i].getCurrentFloor() - CentralDispatcher.numberOfFloorsDifference) > nextFloor
 					&& CentralDispatcher.getElevatorArray()[i].isGoingDown()
@@ -757,12 +792,12 @@ public class CentralDispatcher{
 				int size = CentralDispatcher.getElevatorArray()[i].getFloorsArray().size();
 				if(size > 0){
 				if(CentralDispatcher.getElevatorArray()[i].getFloorsArray().get(size-1) > nextFloor){
-					CentralDispatcher.getElevatorArray()[i].getFloorsArray().faUnLock();
+			//		CentralDispatcher.getElevatorArray()[i].getFloorsArray().faUnLock();
 					return elevatorToUse = CentralDispatcher.getElevatorArray()[i];
 					}
 				}
 			}
-			CentralDispatcher.getElevatorArray()[i].getFloorsArray().faUnLock();
+		//	CentralDispatcher.getElevatorArray()[i].getFloorsArray().faUnLock();
 		}
 		
 		return elevatorToUse;
@@ -809,12 +844,14 @@ public class CentralDispatcher{
 
 	public static void loop() throws InterruptedException {
 
+		
+		
 		if (memoryMgt.getCurrentPercentage() > 75) {
 			memoryMgt.cleanMemory();
 		}
 
 		CentralDispatcher.setCurrentTime(System.nanoTime() / 1000000);
-		if (CentralDispatcher.getCurrentTime() - CentralDispatcher.getStartOfSim() > (int) (CentralDispatcher.getLengthOfSim() / CentralDispatcher.timeFactor)) {
+		if (CentralDispatcher.getCurrentTime() - CentralDispatcher.getStartOfSim() > (CentralDispatcher.getLengthOfSim() / CentralDispatcher.timeFactor)) {
 			CentralDispatcher.setKeepLooping(false);
 			return;
 		}
@@ -845,18 +882,16 @@ public class CentralDispatcher{
 		
 		//if an elevator is near the top or bottom floor and is going up or down respectively, it can pass a floor then come back and swing to get it on the way back to the middle floors
 
-	//	ra.ralock();
+	
 		ArrivalGroup ag = getNextRequestSync();
-	//	ra.raUnlock();
-		
-		
-		
 		Elevator elevatorToUse = null;
 
 		if (ag == null) {
 			//countNull++;
 			return;
 		}
+		
+	//	System.out.println("next arrival group in request array:" + ag.getStartFloor());
 		
         if(ag.getDirection().equals("up")){
 		 	getFloorTruth()[ag.getStartFloor()][0] ++;
@@ -869,15 +904,15 @@ public class CentralDispatcher{
 		// add ag on floor x - 1 to elevator that is going down to floor x, as
 		// long as...conditions ABC are met...
 
+        
+        
 		// TYPE_ONE
 		elevatorToUse = checkToSeeIfElevatorAlreadyOnSameFloor(ag
 				.getStartFloor());
 		if (elevatorToUse != null) {
 			countOccurencesOfElevatorOnSameFloor++;
 			elevatorToUse.setHasTask(true);
-		//	ra.ralock();
 			CentralDispatcher.getRequestArray().remove(0);
-		//	ra.raUnlock();
 			return;
 		}
 
@@ -890,9 +925,7 @@ public class CentralDispatcher{
 				if(elevatorToUse.getCurrentFloor() != ag.getStartFloor()){
 				elevatorToUse.getFloorsArray().add(ag.getStartFloor());	
 				}
-		//		ra.ralock();
 				CentralDispatcher.getRequestArray().remove(0);
-		//		ra.raUnlock();
 				elevatorToUse.setHasTask(true);
 				return;
 			}
@@ -902,9 +935,7 @@ public class CentralDispatcher{
 		elevatorToUse = seeIfElevatorIsAlreadyGoingtoFloor(ag.getStartFloor());
 		if (elevatorToUse != null) {
 			countOccurencesOfElevatorAlreadyGoingToFloor++;
-		//	ra.ralock();
 			CentralDispatcher.getRequestArray().remove(0);
-		//	ra.raUnlock();
 			return;
 		}
 
@@ -914,14 +945,10 @@ public class CentralDispatcher{
 		if (elevatorToUse != null) {
 			countOccurencesOfElevatorGoingPastFloor++;
 			// we must sort the FloorsArray then add at the right index!
-	//		if (elevatorToUse.isAvailable()) {
 				elevatorToUse.getFloorsArray().add(ag.getStartFloor());
 				elevatorToUse.setHasTask(true);
-		//		ra.ralock();
 				CentralDispatcher.getRequestArray().remove(0);
-		//		ra.raUnlock();
 				return;
-		//	}
 		}
 
 		// TYPE_FIVE
@@ -929,14 +956,10 @@ public class CentralDispatcher{
 		if (elevatorToUse != null) {
 			countOccurencesOfElevatorAppending++;
 			// we must sort the FloorsArray then add at the right index!
-		//	if (elevatorToUse.isAvailable()) {
 				elevatorToUse.getFloorsArray().add(ag.getStartFloor());
 				elevatorToUse.setHasTask(true);
-		//		ra.ralock();
 				CentralDispatcher.getRequestArray().remove(0);
-		//		ra.raUnlock();
 				return;
-		//	}
 		}
 
 		// TYPE_SIX
@@ -982,12 +1005,8 @@ public class CentralDispatcher{
 		}
 		countOccurencesFindClosestUntaskedElevator++;
 		elevatorToUse.setHasTask(true);
-	//	ra.ralock();
 		CentralDispatcher.getRequestArray().remove(0);
-	//	ra.raUnlock();
+		return;
 	}
-
-	
-	
 	
 }

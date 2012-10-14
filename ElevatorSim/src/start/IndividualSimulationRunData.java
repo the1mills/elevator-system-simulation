@@ -120,11 +120,33 @@ public class IndividualSimulationRunData {
 	
 	public IndividualSimulationRunData() throws InterruptedException {
 		
+		Thread.sleep(3000);
+		forceUnlocks();
 		initialize();
 		calculateResults();
 		insertIntoTable();
 	}
 	
+	private void forceUnlocks() throws InterruptedException {
+		
+		CentralDispatcher.getRequestArray().forceUnlock();
+		
+		int ne = CentralDispatcher.getNumberOfElevators();
+		
+		for(int i = 0; i < ne; i++){
+			
+			CentralDispatcher.getElevatorArray()[i].getFloorsArray().forceUnlock();
+		}
+		
+		int nf = CentralDispatcher.getNumberOfFloors();
+		
+		for(int i = 0; i < nf; i++){
+			
+			CentralDispatcher.getFloorArray()[i].getArrivalGroupArray().forceUnlock();
+		}
+		
+	}
+
 	private void insertIntoTable(){
 		
 	String sql = "insert into p_elevator values('" + 
@@ -259,12 +281,12 @@ public class IndividualSimulationRunData {
 		
 		Thread.sleep(3000);
 	
-		System.out.println(CentralDispatcher.getCountOccurencesOfElevatorOnSameFloor());
-		System.out.println(CentralDispatcher.getCountOccurencesOfElevatorOf50PercentUntasked());
-		System.out.println(CentralDispatcher.getCountOccurencesOfElevatorAlreadyGoingToFloor());
-		System.out.println(CentralDispatcher.getCountOccurencesOfElevatorGoingPastFloor());
-		System.out.println(CentralDispatcher.getCountOccurencesOfElevatorAppending());
-		System.out.println(CentralDispatcher.getCountOccurencesFindClosestUntaskedElevator());
+		System.out.println("Type 1: " + CentralDispatcher.getCountOccurencesOfElevatorOnSameFloor());
+		System.out.println("Type 2: " + CentralDispatcher.getCountOccurencesOfElevatorOfUntaskedLessRestrictive());
+		System.out.println("Type 3: " + CentralDispatcher.getCountOccurencesOfElevatorAlreadyGoingToFloor());
+		System.out.println("Type 4: " + CentralDispatcher.getCountOccurencesOfElevatorGoingPastFloor());
+		System.out.println("Type 5: " + CentralDispatcher.getCountOccurencesOfElevatorAppending());
+		System.out.println("Type 6: " + CentralDispatcher.getCountOccurencesFindClosestUntaskedElevator());
 	
 	
 	}

@@ -4,10 +4,10 @@ package start;
 public class ElevatorSimulationMainController {
 
 	private int runNumber;
-	public static int[] numberOfElevators = {13,16};
-	public static int numberOfFloors = 23;
+	public static int[] numberOfElevators = {1,1};
+	public static int numberOfFloors = 4;
 	private volatile long lengthOfSim;
-	private int[] timeFactor = {10,20,20};
+	private int[] timeFactor = {15,15,15};
 	private int[] totalServedArray;
 	private volatile MemoryMgt mgmt;
 	private int[] numberOfEmptySpacesToUseGoingToVariable = { 2, 3 }; // 1
@@ -140,17 +140,10 @@ public class ElevatorSimulationMainController {
 		return numberOfElevators;
 	}
 
-	public void setNumberOfElevators(int[] numberOfElevators) {
-		this.numberOfElevators = numberOfElevators;
-	}
-
 	public int getNumberOfFloors() {
 		return numberOfFloors;
 	}
 
-	public void setNumberOfFloors(int numberOfFloors) {
-		this.numberOfFloors = numberOfFloors;
-	}
 
 	public long getLengthOfSim() {
 		return lengthOfSim;
@@ -221,8 +214,8 @@ public class ElevatorSimulationMainController {
 																numberOfEmptySpacesToUseSameFloorVariable[n2],
 																capacityThresholdVariable[o],
 																timeFactor[p]);
-									
-														CentralDispatcher.getEca().dispose();
+														cd.kickOff();
+														cd.getEca().dispose();
 														this.getMgmt()
 																.cleanMemory();
 														cd = null;

@@ -7,32 +7,27 @@ import java.util.concurrent.locks.Lock;
 
 
 
-public class RequestArray implements Lock{
+public class RequestArray extends Vector<ArrivalGroup> implements Lock{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -5427172902158392227L;
 	public static boolean raLock = false;
-	public volatile static Vector<ArrivalGroup> requestArray = null;
 	private int lockedCount = 0;
 	private Thread lockedBy = null;
 
-
-	public RequestArray(){
+	
+     public RequestArray(Vector<ArrivalGroup> newVector) {
 		
-		requestArray = new Vector<ArrivalGroup>();
-		
+		super(newVector);
 	}
 	
-	
-	public static synchronized Vector<ArrivalGroup> getRequestArray() {
-		return requestArray;
-	}
+     public RequestArray() {
+ 		
+ 		super();
+ 	}
 
-
-
-	public static synchronized void setRequestArray(
-			Vector<ArrivalGroup> requestArray) {
-		RequestArray.requestArray = requestArray;
-	}
-	
 	
 	
 	public synchronized void ralock()
@@ -56,7 +51,11 @@ public class RequestArray implements Lock{
 		  }
 		}
 	}
-			  
+			
+	public void forceUnlock(){
+		  raLock = false;
+		//    notify();
+	}
 	
 	
 	@Override

@@ -45,4 +45,9 @@ public class FloorsArray extends Vector<Integer> {
 		}
 		  }
 	
+	public void forceUnlock(){
+		faLock = false;
+	//    notify();
+		
+	}
 }

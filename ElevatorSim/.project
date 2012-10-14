@@ -3,6 +3,7 @@
 	<name>ElevatorSim</name>
 	<comment></comment>
 	<projects>
+		<project>CoreUtilities</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

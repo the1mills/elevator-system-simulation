@@ -41,4 +41,10 @@ public class ArrivalGroupArray extends Vector<ArrivalGroup>{
 		}
 	}
 	
+	public void forceUnlock(){
+		  agaLock = false;
+		 //   notify();
+		
+	}
+	
 }
