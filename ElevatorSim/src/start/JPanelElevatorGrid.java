@@ -41,22 +41,22 @@ public class JPanelElevatorGrid extends JPanel {
 			g2d.setStroke(new BasicStroke(width));
 
 			Font font1 = new Font("HELVETICA", Font.BOLD, (int) (Math.min(Math.max(
-					11, 300 / ElevatorSimulationMainController.numberOfFloors), 40)));
+					11, 300 / ElevatorSimulationMainController.numberOfFloors[0]), 40)));
 			g2d.setFont(font1);
 
 			Integer height = null;
 			
 			// HORIZONTAL LINES
-			for (Integer i = 0; i < ElevatorSimulationMainController.numberOfFloors + 1; i++) {
+			for (Integer i = 0; i < ElevatorSimulationMainController.numberOfFloors[0] + 1; i++) {
 				
 				height = (int) (size.getHeight() - 100 - i
-						* ((size.getHeight() -200) / ((double) ElevatorSimulationMainController.numberOfFloors)));
+						* ((size.getHeight() -200) / ((double) ElevatorSimulationMainController.numberOfFloors[0])));
 				
 				g2d.drawLine(50, height,  (int) ((50 + (CentralDispatcher.numberOfElevators)* ((size.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators))))
 				, height);
 
 				// DRAW Floor NUMBERS
-				if (i == ElevatorSimulationMainController.numberOfFloors) {
+				if (i == ElevatorSimulationMainController.numberOfFloors[0]) {
 					break;
 				}
 				g2d
@@ -74,8 +74,8 @@ public class JPanelElevatorGrid extends JPanel {
 			for (Integer i = 0; i < CentralDispatcher.numberOfElevators + 1; i++) {
 				
 				Integer gridwidth = (int) ((50 + i* ((size.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators))));
-				height = (int) (size.getHeight() - 100 - (ElevatorSimulationMainController.numberOfFloors)
-						* ((size.getHeight() - 200) / ((double) ElevatorSimulationMainController.numberOfFloors)));
+				height = (int) (size.getHeight() - 100 - (ElevatorSimulationMainController.numberOfFloors[0])
+						* ((size.getHeight() - 200) / ((double) ElevatorSimulationMainController.numberOfFloors[0])));
 				
 				g2d.drawLine(gridwidth, 
 						(int)size.getHeight() - 100, 

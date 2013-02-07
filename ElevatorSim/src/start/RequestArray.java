@@ -19,43 +19,41 @@ public class RequestArray extends Vector<ArrivalGroup> implements Lock{
 
 	
      public RequestArray(Vector<ArrivalGroup> newVector) {
-		
 		super(newVector);
 	}
 	
      public RequestArray() {
- 		
  		super();
  	}
 
-	
-	
-	public synchronized void ralock()
-			  throws InterruptedException{
-		Thread callingThread = Thread.currentThread();
-			    while(raLock && lockedBy != callingThread){
-			      wait();
-			    }
-			    raLock = true;
-			    lockedCount++;
-			    lockedBy = callingThread;
-			    
-	 }
-	
-	public synchronized void raUnlock(){
-		if(Thread.currentThread() == this.lockedBy){
-			lockedCount--;
-		  if(lockedCount == 0){
-		    raLock = false;
-		    notifyAll();
-		  }
-		}
-	}
-			
-	public void forceUnlock(){
-		  raLock = false;
-		//    notify();
-	}
+//	
+//	
+//	public synchronized void ralock()
+//			  throws InterruptedException{
+//		Thread callingThread = Thread.currentThread();
+//			    while(raLock && lockedBy != callingThread){
+//			      wait();
+//			    }
+//			    raLock = true;
+//			    lockedCount++;
+//			    lockedBy = callingThread;
+//			    
+//	 }
+//	
+//	public synchronized void raUnlock(){
+//		if(Thread.currentThread() == this.lockedBy){
+//			lockedCount--;
+//		  if(lockedCount == 0){
+//		    raLock = false;
+//		    notifyAll();
+//		  }
+//		}
+//	}
+//			
+//	public void forceUnlock(){
+//		  raLock = false;
+//		//    notify();
+//	}
 	
 	
 	@Override

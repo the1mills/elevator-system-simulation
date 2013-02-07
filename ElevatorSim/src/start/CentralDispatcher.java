@@ -42,14 +42,14 @@ public class CentralDispatcher{
 	private static int countUntaskedVariable; //7
 	private static int appendDistanceVariable; //8
 	private static int distanceAlreadyGoingVariable; //9
-	static volatile SQLDataServer sds = null;
+	//static volatile SQLDataServer sds = null;
 	private static volatile int capacityOfElevator; //10
 	private static volatile long loadUnloadTimePerPassenger = 2000;
 	private static Date startDate = null;
 	private static Date endDate = null;
 	private static volatile double startOfSim;
 	//private static double lengthOfSim = 1500000;
-	private static double lengthOfSim = 500000;
+	private static double lengthOfSim = 550000;
 	private static volatile ElevatorComponentAnimation eca = null;
 	private static boolean simulationPaused = false;
 	public static volatile RequestArray ra = null;
@@ -81,10 +81,10 @@ public class CentralDispatcher{
 		CentralDispatcher.simulationPaused = simulationPaused;
 		if(CentralDispatcher.simulationPaused){
 			for(int i = 0; i < CentralDispatcher.getFloorThreadArray().length; i++){
-				CentralDispatcher.getFloorThreadArray()[i].sleep(200);	
+				CentralDispatcher.getFloorThreadArray()[i].sleep(2000);	
 			}
 			for(int i = 0; i < CentralDispatcher.getElevatorThreadArray().length; i++){
-				CentralDispatcher.getFloorThreadArray()[i].sleep(200);	
+				CentralDispatcher.getFloorThreadArray()[i].sleep(2000);	
 			}
 			
 		}
@@ -127,7 +127,7 @@ public class CentralDispatcher{
 		CentralDispatcher.startOfSim = startOfSim;
 	}
 
-	public static  String getEndDate() {
+	public static String getEndDate() {
 		return CentralDispatcher.endDate.toString().replace("EDT", "").replace(" ", "");
 	}
 
@@ -139,13 +139,13 @@ public class CentralDispatcher{
 		CentralDispatcher.startDate = startDate;
 	}
 
-	public static synchronized SQLDataServer getSds() {
-		return sds;
-	}
-
-	public static synchronized void setSds(SQLDataServer sds) {
-		CentralDispatcher.sds = sds;
-	}
+//	public static synchronized SQLDataServer getSds() {
+//		return sds;
+//	}
+//
+//	public static synchronized void setSds(SQLDataServer sds) {
+//		CentralDispatcher.sds = sds;
+//	}
 
 	public static int getCapacityOfElevator() {
 		return capacityOfElevator;
@@ -511,14 +511,14 @@ public class CentralDispatcher{
 					break;
 				}
 				
-				y.faLock();
+	//			y.faLock();
 				for(int k = 0; k < y.size(); k++){
 					
 					if(y.get(k) == floorNum){
 						y.remove(k);
 					}
 				}
-				y.faUnLock();
+	//			y.faUnLock();
 				
 			}
 		}
@@ -536,17 +536,20 @@ public class CentralDispatcher{
 				
 		}
 		
-		CentralDispatcher.sds = new SQLDataServer();
+		//CentralDispatcher.sds = new SQLDataServer();
 		
-		initializeTables();
+//		initializeTables();
 		
 		distributionOfUntaskedElevators = new Integer[numberOfFloors];
 		for (int i = 0; i < CentralDispatcher.distributionOfUntaskedElevators.length; i++) {
 			CentralDispatcher.distributionOfUntaskedElevators[i] = 0;
 		}
 
+		Thread.sleep(2500);
+		
 		eca = new ElevatorComponentAnimation();
 		eca.setVisible(true);
+		eca.validate();
 		
 		Thread.sleep(250);
 		
@@ -587,15 +590,15 @@ public class CentralDispatcher{
 	}
    
 	
-	private static void initializeTables(){
-		String sql = "truncate table debugging_table";
-		sds.execute(sql);
-	}
-
-	public static  void insertIntoDebuggingTable(int runNumber, int numberOfFloors, int numOfElevators,String problem, double currentTime, String classname) {
-		String sql = "insert into debugging_table values('" + runNumber + "','" + numberOfFloors + "','" + numOfElevators + "','" + problem + "','" + currentTime + "','" + classname + "')";
-		sds.execute(sql);
-	}
+//	private static void initializeTables(){
+//		String sql = "truncate table debugging_table";
+//		sds.execute(sql);
+//	}
+//
+//	public static  void insertIntoDebuggingTable(int runNumber, int numberOfFloors, int numOfElevators,String problem, double currentTime, String classname) {
+//		String sql = "insert into debugging_table values('" + runNumber + "','" + numberOfFloors + "','" + numOfElevators + "','" + problem + "','" + currentTime + "','" + classname + "')";
+//		sds.execute(sql);
+//	}
 
 	private static void initialize() {
 		
@@ -818,7 +821,7 @@ public class CentralDispatcher{
 						.getElevatorArray()[i].getCurrentNumberOfPeopleSpaces()) {
 					
 					String problem = "Elevator capacity problem!!! Elevator has no task, but has people in it!!!";
-					insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,"CentralDispatcher");
+//					insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,"CentralDispatcher");
 				}
 
 				elevatorToUse = CentralDispatcher.getElevatorArray()[i];
@@ -985,7 +988,7 @@ public class CentralDispatcher{
 		} else if (elevatorToUse.getCurrentFloor() == ag.getStartFloor()) {
 			
 			String problem = "Closest UNTASKED elevator on same floor, but TYPE_SIX";
-			insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,"CentralDispatcher");
+	//		insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,"CentralDispatcher");
 	
 			
 			if (elevatorToUse.getCurrentFloor() > ag.getDesiredFloor()) {
@@ -1000,7 +1003,7 @@ public class CentralDispatcher{
 
 		} else {
 			String problem = "We should never get to CentralDispatcher point...";
-			insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,"CentralDispatcher");
+	//		insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,"CentralDispatcher");
 	
 		}
 		countOccurencesFindClosestUntaskedElevator++;

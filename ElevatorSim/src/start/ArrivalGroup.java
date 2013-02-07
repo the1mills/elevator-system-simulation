@@ -8,7 +8,6 @@ public class ArrivalGroup {
 	private volatile double cumulativeTimeOfWaiting;
 	private volatile double cumulativeTimeOfRidingElevator;
 	private volatile double timeFirstBoarding;
-	private volatile double totalTimeToBeServed;
 	private volatile double timeOfArrival;
 	private int numberOfPeopleInGroup;
 	private boolean waiting = true; // waiting before they first got onto elevator
@@ -36,7 +35,6 @@ public class ArrivalGroup {
 					null,
 					"Problem with start floor");
 		}
-		
 	}
 	
 	public synchronized double getTimeFirstBoarding() {
@@ -61,15 +59,12 @@ public class ArrivalGroup {
 		return getCumulativeTimeOfRidingElevator() + getCumulativeTimeOfWaiting();
 	}
 
-	public synchronized void setTotalTimeToBeServed(double totalTimeToBeServed) {
-		this.totalTimeToBeServed = totalTimeToBeServed;
-	}
 
-	public synchronized int getStartFloor() {
+	public int getStartFloor() {
 		return startFloor;
 	}
 
-	public synchronized void setStartFloor(int startFloor) {
+	public void setStartFloor(int startFloor) {
 		this.startFloor = startFloor;
 	}
 
@@ -81,19 +76,19 @@ public class ArrivalGroup {
 		this.direction = direction;
 	}
 	
-	public synchronized boolean isWaiting() {
+	public boolean isWaiting() {
 		return waiting;
 	}
 
-	public synchronized void setWaiting(boolean waiting) {
+	public void setWaiting(boolean waiting) {
 		this.waiting = waiting;
 	}
 
-	public synchronized int getDesiredFloor() {
+	public int getDesiredFloor() {
 		return desiredFloor;
 	}
 
-	public synchronized void setDesiredFloor(int desiredFloor) {
+	public void setDesiredFloor(int desiredFloor) {
 		this.desiredFloor = desiredFloor;
 	}
 	
@@ -117,15 +112,15 @@ public class ArrivalGroup {
 		return numberOfPeopleInGroup;
 	}
 
-	public synchronized void setNumberOfPeopleInGroup(int numberOfPeopleInGroup) {
+	public void setNumberOfPeopleInGroup(int numberOfPeopleInGroup) {
 		this.numberOfPeopleInGroup = numberOfPeopleInGroup;
 	}
 
-	public synchronized boolean isGotServedByElevator() {
+	public boolean isGotServedByElevator() {
 		return gotServedByElevator;
 	}
 
-	public synchronized void setGotServedByElevator(boolean gotServedByElevator) {
+	public void setGotServedByElevator(boolean gotServedByElevator) {
 		this.gotServedByElevator = gotServedByElevator;
 	}
 

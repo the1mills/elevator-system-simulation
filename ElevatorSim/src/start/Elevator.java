@@ -26,7 +26,7 @@ public class Elevator extends Observable implements Runnable {
 	private volatile FloorsArray floorsArray = null;
 	private int lastGroupServed = 0;
 	private boolean available = true;
-	private volatile Vector<ArrivalGroup> groupsOfPassengers = new Vector<ArrivalGroup>();
+	private volatile ArrivalGroupArray groupsOfPassengers = new ArrivalGroupArray();
 	private volatile double drawHeight = 0;
 	private int drawWidth = 0;
 	private int drawElevatorHeight = 0;
@@ -117,12 +117,12 @@ public class Elevator extends Observable implements Runnable {
 	public void setDrawElevatorWidth(int drawElevatorWidth) {
 		this.drawElevatorWidth = drawElevatorWidth;
 	}
-	public synchronized Vector<ArrivalGroup> getGroupsOfPassengers() {
+	public synchronized ArrivalGroupArray getGroupsOfPassengers() {
 		return groupsOfPassengers;
 	}
 
 	public synchronized void setGroupsOfPassengers(
-			Vector<ArrivalGroup> GroupsOfPassengers) {
+			ArrivalGroupArray GroupsOfPassengers) {
 		this.groupsOfPassengers = GroupsOfPassengers;
 	}
 	public boolean isAvailable() {
@@ -144,7 +144,7 @@ public class Elevator extends Observable implements Runnable {
 		}
 		if(this.capacity - count < 0){
 			String problem = "There are more people in the elevator than the capacity of the elevator!!";
-			CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+		//	CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 	
 		}
 		return this.getCapacity() - count;
@@ -192,7 +192,6 @@ public class Elevator extends Observable implements Runnable {
 	}
 
 	public int getNextFloor() {
-		
 		return nextFloor;
 	}
 
@@ -334,7 +333,7 @@ public class Elevator extends Observable implements Runnable {
 				loop();
 			} catch (InterruptedException e) {
 				String problem = "Interruption exception whiling looping in an elevator.";
-				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+	//			CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 			}
 		}	
 	}
@@ -522,13 +521,13 @@ public class Elevator extends Observable implements Runnable {
 	}
 	
 	public synchronized void setNextFloor() throws InterruptedException{
-		this.getFloorsArray().faLock();
+	//	this.getFloorsArray().faLock();
 		if(this.getFloorsArray().size()>0){
 			this.setNextFloor(this.getFloorsArray().get(0));
 		} else {
 		this.setNextFloor(-1);
 		}
-		this.getFloorsArray().faUnLock();
+	//	this.getFloorsArray().faUnLock();
 	}
 	
 	private void loop() throws InterruptedException{
@@ -537,10 +536,14 @@ public class Elevator extends Observable implements Runnable {
 		
 		//add all desired floors of passengers to floorsarray
 	//	this.getFloorsArray().faLock();
+		
+		
 		for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
 			if(this.getGroupsOfPassengers().get(i).isGotServedByElevator() == false){ 
 					hasTask = true;
-			if(!this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())){
+			if(!this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())
+					 && 
+						this.getGroupsOfPassengers().get(i).getDesiredFloor() != this.getCurrentFloor()){
 				this.getFloorsArray().add(this.getGroupsOfPassengers().get(i).getDesiredFloor());		
 			}
 		}
@@ -573,11 +576,14 @@ public class Elevator extends Observable implements Runnable {
 				
 			}
 			
+			
 			for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
-				if(this.getGroupsOfPassengers().get(i).getCumulativeTimeOfRidingElevator() == 0 || !this.getGroupsOfPassengers().get(i).isGotServedByElevator()){
+				if(!this.getGroupsOfPassengers().get(i).isGotServedByElevator()){
 					String problem = "Untasked elevator has passengers in it...possibly because while in the untasked loop, passengers were added...?";
-					CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
-					if(!this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())){
+	//				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+					if(!this.getGroupsOfPassengers().get(i).isGotServedByElevator() && !this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())
+							 && 
+								this.getGroupsOfPassengers().get(i).getDesiredFloor() != this.getCurrentFloor()){
 					this.getFloorsArray().add(this.getGroupsOfPassengers().get(i).getDesiredFloor());
 					}
 					hasTask = true;
@@ -590,7 +596,7 @@ public class Elevator extends Observable implements Runnable {
 			
 			if( this.getCapacity() - this.getCurrentNumberOfPeopleSpaces()  != this.getNumberOfPassengers()){
 				String problem = "capacity problem - doesnt equal spaces and no of passengers";
-				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+		//		CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 		
 			}
 			
@@ -644,7 +650,8 @@ public class Elevator extends Observable implements Runnable {
 			notifyObservers("E"+this.getNumberOfPassengers().toString());
 			
 			for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
-				if(this.getGroupsOfPassengers().get(i).getCumulativeTimeOfRidingElevator() == 0 && !this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())){
+				if(!this.getGroupsOfPassengers().get(i).isGotServedByElevator() && !this.getFloorsArray().contains(this.getGroupsOfPassengers().get(i).getDesiredFloor())  && 
+						this.getGroupsOfPassengers().get(i).getDesiredFloor() != this.getCurrentFloor()){
 					this.getFloorsArray().add(this.getGroupsOfPassengers().get(i).getDesiredFloor());
 				}
 			}
@@ -680,40 +687,41 @@ public class Elevator extends Observable implements Runnable {
 			
 			FloorsArray temp;
 			if(this.getNextFloor() > this.getCurrentFloor()){
+				
 				this.goingUp = true;
 				this.goingDown = false;
-				this.getFloorsArray().faLock();
+		//**		this.getFloorsArray().faLock();
 				temp = copyArray(this.getFloorsArray());
 			//	temp.faLock();
 				temp =  sortUp(temp, true);
 				this.setFloorsArray(temp);
-				this.getFloorsArray().faUnLock();
+	//**			this.getFloorsArray().faUnLock();
 				this.setNextFloor();
 			//	temp.faUnLock();
 			//	this.available = true;
 			} else if (this.getNextFloor() < this.getCurrentFloor()){
 				this.goingUp = false;
 				this.goingDown = true;
-				this.getFloorsArray().faLock();
+		//**		this.getFloorsArray().faLock();
 				temp =  copyArray(this.getFloorsArray());
 			//	temp.faLock();
 				temp = sortDown(temp, true);
 				this.setFloorsArray(temp);
-				this.getFloorsArray().faUnLock();
+		//**		this.getFloorsArray().faUnLock();
 				this.setNextFloor();
 			//	temp.faUnLock();
 			//	this.available = true;
 			}
 			else{
 				String problem = "Elevator seems to be on same floor as next floor.";
-				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+		//		CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 			}
 			
 			
 			temp = new FloorsArray(CentralDispatcher.getNumberOfFloors());
-			this.getFloorsArray().faLock();
+		//**	this.getFloorsArray().faLock();
 			temp = copyArray(this.getFloorsArray());
-			this.getFloorsArray().faUnLock();
+		//**	this.getFloorsArray().faUnLock();
 			//temp.faLock(); 
 			
 			//double travelTime = findTravelTimePerFloor();
@@ -722,9 +730,9 @@ public class Elevator extends Observable implements Runnable {
 			if(goingUp && !goingDown){
 				while(this.getCurrentFloor() < this.getNextFloor()){
 					
-					if(this.getFloorsArray().isEmpty()){
-						return;
-					}
+//					if(this.getFloorsArray().isEmpty()){
+//						return;
+//					}
 					
 					setChanged();
 					notifyObservers(Color.blue);
@@ -734,7 +742,7 @@ public class Elevator extends Observable implements Runnable {
 					
 					if(!vectorsAreSame(temp,this.getFloorsArray())){
 					//	this.available = false;
-						this.getFloorsArray().faLock();
+		//**				this.getFloorsArray().faLock();
 						temp =  copyArray(this.getFloorsArray());
 					//	temp.faLock();
 						temp = sortUp(temp, true);
@@ -742,7 +750,7 @@ public class Elevator extends Observable implements Runnable {
 					//	temp.faUnLock();
 						setChanged();
 						notifyObservers(Color.yellow);
-						this.getFloorsArray().faUnLock();
+		//**				this.getFloorsArray().faUnLock();
 						this.setNextFloor();
 					//	this.available = true;
 					}
@@ -762,6 +770,8 @@ public class Elevator extends Observable implements Runnable {
 							}
 							if(extraStop){
 							this.setNextFloor(i);
+							setChanged();
+							notifyObservers(Color.yellow);
 							break;
 							}
 						}
@@ -783,7 +793,7 @@ public class Elevator extends Observable implements Runnable {
 							if(ag != null){
 							CentralDispatcher.getRequestArray().add(0, ag);
 							String problem = "A destination floor was removed from elevators floor array.";
-							CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+			//				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 							this.getFloorsArray().remove(0);
 							this.setNextFloor();
 							}
@@ -808,11 +818,11 @@ public class Elevator extends Observable implements Runnable {
 					
 					if(!vectorsAreSame(temp,this.getFloorsArray())){
 					//	this.available = false;
-						this.getFloorsArray().faLock();
+			//**			this.getFloorsArray().faLock();
 						temp = copyArray(this.getFloorsArray());
 						temp = sortDown(temp, true);
 						this.setFloorsArray(temp);
-						this.getFloorsArray().faUnLock();
+			//**			this.getFloorsArray().faUnLock();
 						setChanged();
 						notifyObservers(Color.yellow);
 						this.setNextFloor();
@@ -831,7 +841,7 @@ public class Elevator extends Observable implements Runnable {
 							if(ag != null){
 							CentralDispatcher.getRequestArray().add(0, ag);
 							String problem = "A destination floor was removed from elevators floor array.";
-							CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+			//				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 							this.getFloorsArray().remove(0);
 							this.setNextFloor();
 							}
@@ -843,8 +853,7 @@ public class Elevator extends Observable implements Runnable {
 			//Elevator is neither going up or down...let's hope that either the floorsarray is empty or even better, there is only one element in the array, and that is the current floor...
 			else{
 					String problem = "FloorArray should NOT be empty here...";
-					CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
-					
+	//				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 			}
 			
 			if(this.getFloorsArray().size() < 1){
@@ -853,18 +862,20 @@ public class Elevator extends Observable implements Runnable {
 			
 			if(this.getCurrentFloor() != this.getFloorsArray().get(0)){
 				String problem = "Ooo boy, current floor is not the same as what it should be..";
-				CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+	//			CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 			}
 			isStoppedOnCurrentFloor = true;
-			this.getFloorsArray().faLock();
+	//**		this.getFloorsArray().faLock();
 			if(this.getFloorsArray().size() > 0){
 			this.getFloorsArray().remove(0);
-			this.getFloorsArray().faUnLock();
+	//**		this.getFloorsArray().faUnLock();
 			}
 			else{
-				this.getFloorsArray().faUnLock();
-				return;
+	//**			this.getFloorsArray().faUnLock();
+	//			return;
 			}
+			
+			
 			CentralDispatcher.removeFloorsFromOtherElevatorsAfterVisited(this.getCurrentFloor());
 		
 			setChanged();
@@ -876,7 +887,7 @@ public class Elevator extends Observable implements Runnable {
 			setNextFloor();
 			
 			
-			if(this.getElevatorNumberId() == 1){
+			if(this.getElevatorNumberId() == 0){
 				System.out.println("");
 				System.out.println("Elevator #: " + this.getElevatorNumberId());
 				System.out.println("Elevator direction up: " + this.goingUp);
@@ -895,6 +906,10 @@ public class Elevator extends Observable implements Runnable {
 			for(int i = 0; i < this.getGroupsOfPassengers().size(); i++){
 				if(this.getGroupsOfPassengers().get(i).getDesiredFloor() == this.getCurrentFloor() && this.getGroupsOfPassengers().get(i).isGotServedByElevator() == false){
 					this.getGroupsOfPassengers().get(i).setCumulativeTimeOfRidingElevator(System.nanoTime()/1000000 - this.getGroupsOfPassengers().get(i).getTimeFirstBoarding());
+					if(this.getGroupsOfPassengers().get(i).getCumulativeTimeOfRidingElevator() > 4000.0){
+						ArrivalGroup x =this.getGroupsOfPassengers().get(i);
+						System.out.println("What's going on?");
+					}
 					this.getGroupsOfPassengers().get(i).setGotServedByElevator(true);
 					for(int j = 0; j < this.getGroupsOfPassengers().get(i).getNumberOfPeopleInGroup(); j++){
 						
@@ -911,7 +926,6 @@ public class Elevator extends Observable implements Runnable {
 			}
 			
 			FloorOfBuilding fob = CentralDispatcher.getFloorArray()[this.getCurrentFloor()];
-			
 			
 			
 			//NOW WE LOAD NEW PASSENGERS
@@ -990,7 +1004,9 @@ public class Elevator extends Observable implements Runnable {
 				CentralDispatcher.floorTruth[this.getCurrentFloor()][0]--;
 			}
 			else{
-				
+				String problem = "We have a stoeoeaaaaa!";
+		//		CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+		
 			}
 			
 			
@@ -1012,7 +1028,7 @@ public class Elevator extends Observable implements Runnable {
 									
 									if(fob.getArrivalGroupArray().get(i).getStartFloor() != this.getCurrentFloor()){
 										String problem = "We have a serious problem with start floor of the customer not corresponding to the elevator's current floor that customer wants to load onto!";
-										CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
+		//								CentralDispatcher.insertIntoDebuggingTable(CentralDispatcher.getRunNumber(),CentralDispatcher.getNumberOfFloors(),CentralDispatcher.getNumberOfElevators(),problem,CentralDispatcher.getCurrentTime()/1000,this.getClass().getName());
 									}
 									add = false;
 									break;

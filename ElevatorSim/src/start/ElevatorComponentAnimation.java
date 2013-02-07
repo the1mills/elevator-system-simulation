@@ -86,7 +86,7 @@ public class ElevatorComponentAnimation extends JFrame implements Observer, Acti
 	    panel.setBounds(insets.left, insets.top, 700, 700);
 		
 		width = (int) (((panel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)));
-		height = (int)(((panel.getHeight() -200) / ((double) ElevatorSimulationMainController.numberOfFloors))) - 5;
+		height = (int)(((panel.getHeight() -200) / ((double) ElevatorSimulationMainController.numberOfFloors[0]))) - 5;
 		
 		try {
 			img = ImageIO.read(new File("src/start/3d-box.jpg"));
@@ -153,7 +153,7 @@ public class ElevatorComponentAnimation extends JFrame implements Observer, Acti
 			panel.add(floorJLabelVector.get(i));
 			floorJLabelVector.get(i).setBounds(insets.left + 600,
 					(int) (panel.getHeight() - 100 - (i+1)
-							* ((panel.getHeight()-200) / ((double) ElevatorSimulationMainController.numberOfFloors))), 140, 20);
+							* ((panel.getHeight()-200) / ((double) ElevatorSimulationMainController.numberOfFloors[0]))), 140, 20);
 
 		}
 		
@@ -164,6 +164,8 @@ public class ElevatorComponentAnimation extends JFrame implements Observer, Acti
 
 	@Override
 	public synchronized void update(Observable arg0, Object arg1) {
+		
+		CentralDispatcher.getEca().validate();
 
 		if (arg0 instanceof Elevator) {
 			

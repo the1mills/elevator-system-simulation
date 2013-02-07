@@ -7,7 +7,8 @@ public class StartSimulation {
 	public static void main(String[] args) throws InterruptedException{
 	
 		new ElevatorSimulationMainController();
-		System.exit(0);
+	//	(new ElevatorMainWindow2()).setVisible(true);
+		//System.exit(0);
 	}
 	}
 	

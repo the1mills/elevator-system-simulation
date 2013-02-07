@@ -139,38 +139,45 @@ public class ElevatorAnimation extends JFrame implements Runnable {
 
 	@Override
 	public void run() {
-	
-		while(cd.isKeepLooping()){
-			
-			try {
-				Thread.sleep(10);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			for(int i =0; i < cd.getNumberOfElevators(); i++){
-				if(currentFloorArray[i] != cd.getElevatorArray()[i].getCurrentFloor()){
-					g = this.getGraphics();
-					g2d = (Graphics2D) g;
-					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-					int width = 1;
-					g2d.setColor(Color.white);
-					g2d.setStroke(new BasicStroke(width));
-					g2d.fillRect(760, this.getHeight()
-							- 100
-							- (int) ((currentFloorArray[i]+1) * ((double) 700 / (double) this.numberOfFloors)), 300, (int)((double) 700 / (double) this.numberOfFloors));
-				
-					g2d.setColor(Color.blue);
-					
-					currentFloorArray[i] = cd.getElevatorArray()[i].getCurrentFloor();
-				
-					g2d.fillRect(760, this.getHeight()
-							- 100
-							- (int) ((currentFloorArray[i]+1) * ((double) 700 / (double) this.numberOfFloors)), 300, (int)((double) 700 / (double) this.numberOfFloors));
-				
-				}
-			}
-			
-		}
+		// TODO Auto-generated method stub
+		
 	}
+
+//	@Override
+//	public void run() {
+//	
+//		while(CentralDispatcher.isKeepLooping()){
+//			
+//			try {
+//				Thread.sleep(10);
+//				this.validate();
+//			} catch (InterruptedException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			for(int i =0; i < cd.getNumberOfElevators(); i++){
+//				if(currentFloorArray[i] != cd.getElevatorArray()[i].getCurrentFloor()){
+//					g = this.getGraphics();
+//					g2d = (Graphics2D) g;
+//					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+//					int width = 1;
+//					g2d.setColor(Color.white);
+//					g2d.setStroke(new BasicStroke(width));
+//					g2d.fillRect(760, this.getHeight()
+//							- 100
+//							- (int) ((currentFloorArray[i]+1) * ((double) 700 / (double) this.numberOfFloors)), 300, (int)((double) 700 / (double) this.numberOfFloors));
+//				
+//					g2d.setColor(Color.blue);
+//					
+//					currentFloorArray[i] = cd.getElevatorArray()[i].getCurrentFloor();
+//				
+//					g2d.fillRect(760, this.getHeight()
+//							- 100
+//							- (int) ((currentFloorArray[i]+1) * ((double) 700 / (double) this.numberOfFloors)), 300, (int)((double) 700 / (double) this.numberOfFloors));
+//				
+//				}
+//			}
+//			
+//		}
+//	}
 }

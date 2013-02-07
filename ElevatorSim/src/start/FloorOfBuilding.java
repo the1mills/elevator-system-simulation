@@ -146,7 +146,7 @@ public class FloorOfBuilding extends Observable implements Runnable {
 		
 		nowTime = ((nowTime/1000*CentralDispatcher.getTimeFactor()) % numSecondsPerDay);
 		
-		double x = numSecondsPerDay*1/24;
+		double x = numSecondsPerDay/24;
 
 		if (nowTime < x) {
 			return 0;
@@ -248,17 +248,16 @@ public class FloorOfBuilding extends Observable implements Runnable {
 					&& temp[i].isHasTask() == false
 					&& temp[i].isStoppedOnCurrentFloor()) {
 
-				// make the elevator wait here, lock the elevator, make
-				// unavailable...
+				// make the elevator wait here, lock the elevator, make unavailable...?
 				if (temp[i].getCurrentNumberOfPeopleSpaces() != temp[i]
 						.getCapacity()) {
 					String problem = "Untasked elevator has people on it while stopped on a floor!! lame...";
-					CentralDispatcher.insertIntoDebuggingTable(
-							CentralDispatcher.getRunNumber(), CentralDispatcher
-									.getNumberOfFloors(), CentralDispatcher
-									.getNumberOfElevators(), problem,
-							CentralDispatcher.getCurrentTime() / 1000, this
-									.getClass().getName());
+//					CentralDispatcher.insertIntoDebuggingTable(
+//							CentralDispatcher.getRunNumber(), CentralDispatcher
+//									.getNumberOfFloors(), CentralDispatcher
+//									.getNumberOfElevators(), problem,
+//							CentralDispatcher.getCurrentTime() / 1000, this
+//									.getClass().getName());
 				}
 				int groupSize = ag.getNumberOfPeopleInGroup();
 				if (temp[i].getCurrentNumberOfPeopleSpaces() >= groupSize) {
@@ -332,8 +331,10 @@ public class FloorOfBuilding extends Observable implements Runnable {
 				+ countPplWaitingUp.toString() + " "
 				+ countPplWaitingDown.toString();
 
+		
 		setChanged();
 		notifyObservers(waiting);
+		CentralDispatcher.getEca().validate();
 
 	}
 

@@ -1,55 +1,54 @@
 package start;
+import java.lang.reflect.Method;
+import java.util.Hashtable;
 
 
 public class ElevatorSimulationMainController {
 
-	private int runNumber;
-	public static int[] numberOfElevators = {1,1};
-	public static int numberOfFloors = 4;
-	private volatile long lengthOfSim;
-	private int[] timeFactor = {15,15,15};
-	private int[] totalServedArray;
-	private volatile MemoryMgt mgmt;
-	private int[] numberOfEmptySpacesToUseGoingToVariable = { 2, 3 }; // 1
-	private int[] numberOfEmptySpacesToUsePassingByVariable = { 2, 3 };// 2
-	private int[] numberOfEmptySpacesToUseSameFloorVariable = { 2, 3 }; // 3
-	private int[] capacityThresholdVariable = { 2, 3 }; // 4
-	private int[] numberOfFloorsDifference = { 2, 3 }; // 5
-	private int[] maxDistanceForUntaskedVariable = { 5, 6 }; // 6
-	private int[] countUntaskedVariable = { 0, 1 }; // 7
-	private int[] appendDistanceVariable = { 5, 6 }; // 8
-	private int[] distanceAlreadyGoingVariable = { 4, 5}; // 9
-	private int[] capacityVariable = {9,10};
+
+
+	private static int runNumber;
+	private static int[] totalServedArray;
+	private static volatile MemoryMgt mgmt;
+	private static volatile long lengthOfSim;
+	public static int[] numberOfElevators = {16,12};
+	public static int[] numberOfFloors = {29};
+	private static int[] timeFactor = {43,33,43};
+	private static int[] numberOfEmptySpacesToUseGoingToVariable = { 2, 3 }; // 1
+	private static int[] numberOfEmptySpacesToUsePassingByVariable = { 2, 3 };// 2
+	private static int[] numberOfEmptySpacesToUseSameFloorVariable = { 2, 3 }; // 3
+	private static int[] capacityThresholdVariable = { 2, 3 }; // 4
+	private static int[] numberOfFloorsDifference = { 2, 3 }; // 5
+	private static int[] maxDistanceForUntaskedVariable = { 5, 6 }; // 6
+	private static int[] countUntaskedVariable = { 0, 1 }; // 7
+	private static int[] appendDistanceVariable = { 5, 6 }; // 8
+	private static int[] distanceAlreadyGoingVariable = { 4, 5}; // 9
+	private static int[] capacityVariable = {9,10};
 
 	public static Integer numberOfRunsTotal = null;
 	
 	public int getRunNumber() {
 		return runNumber;
 	}
-	
-	public Integer getTotalNumberOfRuns(){
-		
-		Integer x = null;
-		
-		x = this.getNumberOfElevators().length*
-				this.getTimeFactor().length*
-				this.getNumberOfEmptySpacesToUseGoingToVariable().length*
-				this.getNumberOfEmptySpacesToUsePassingByVariable().length*
-				this.getNumberOfEmptySpacesToUseSameFloorVariable().length*
-				this.getCapacityThresholdVariable().length*
-				this.getNumberOfFloorsDifference().length*
-				this.getMaxDistanceForUntaskedVariable().length*
-				this.getCountUntaskedVariable().length*
-				this.getAppendDistanceVariable().length*
-				this.getDistanceAlreadyGoingVariable().length*
-				this.getCapacityVariable().length;
-		
-		return x;
-		
+
+	public static Integer getNumberOfRunsTotal() {
+		return numberOfRunsTotal;
+	}
+
+	public static void setNumberOfRunsTotal(Integer numberOfRunsTotal) {
+		ElevatorSimulationMainController.numberOfRunsTotal = numberOfRunsTotal;
+	}
+
+	public static void setNumberOfElevators(int[] numberOfElevators) {
+		ElevatorSimulationMainController.numberOfElevators = numberOfElevators;
+	}
+
+	public static void setNumberOfFloors(int[] numberOfFloors) {
+		ElevatorSimulationMainController.numberOfFloors = numberOfFloors;
 	}
 
 	public void setRunNumber(int runNumber) {
-		this.runNumber = runNumber;
+		ElevatorSimulationMainController.runNumber = runNumber;
 	}
 
 	public int[] getCapacityVariable() {
@@ -57,7 +56,7 @@ public class ElevatorSimulationMainController {
 	}
 
 	public void setCapacityVariable(int[] capacity) {
-		this.capacityVariable = capacity;
+		ElevatorSimulationMainController.capacityVariable = capacity;
 	}
 	public int[] getNumberOfEmptySpacesToUseGoingToVariable() {
 		return numberOfEmptySpacesToUseGoingToVariable;
@@ -65,7 +64,7 @@ public class ElevatorSimulationMainController {
 
 	public void setNumberOfEmptySpacesToUseGoingToVariable(
 			int[] numberOfEmptySpacesToUseGoingToVariable) {
-		this.numberOfEmptySpacesToUseGoingToVariable = numberOfEmptySpacesToUseGoingToVariable;
+		ElevatorSimulationMainController.numberOfEmptySpacesToUseGoingToVariable = numberOfEmptySpacesToUseGoingToVariable;
 	}
 
 	public int[] getNumberOfEmptySpacesToUsePassingByVariable() {
@@ -74,7 +73,7 @@ public class ElevatorSimulationMainController {
 
 	public void setNumberOfEmptySpacesToUsePassingByVariable(
 			int[] numberOfEmptySpacesToUsePassingByVariable) {
-		this.numberOfEmptySpacesToUsePassingByVariable = numberOfEmptySpacesToUsePassingByVariable;
+		ElevatorSimulationMainController.numberOfEmptySpacesToUsePassingByVariable = numberOfEmptySpacesToUsePassingByVariable;
 	}
 
 	public int[] getNumberOfEmptySpacesToUseSameFloorVariable() {
@@ -83,7 +82,7 @@ public class ElevatorSimulationMainController {
 
 	public void setNumberOfEmptySpacesToUseSameFloorVariable(
 			int[] numberOfEmptySpacesToUseSameFloorVariable) {
-		this.numberOfEmptySpacesToUseSameFloorVariable = numberOfEmptySpacesToUseSameFloorVariable;
+		ElevatorSimulationMainController.numberOfEmptySpacesToUseSameFloorVariable = numberOfEmptySpacesToUseSameFloorVariable;
 	}
 
 	public int[] getCapacityThresholdVariable() {
@@ -91,7 +90,7 @@ public class ElevatorSimulationMainController {
 	}
 
 	public void setCapacityThresholdVariable(int[] capacityThresholdVariable) {
-		this.capacityThresholdVariable = capacityThresholdVariable;
+		ElevatorSimulationMainController.capacityThresholdVariable = capacityThresholdVariable;
 	}
 
 	public int[] getNumberOfFloorsDifference() {
@@ -99,7 +98,7 @@ public class ElevatorSimulationMainController {
 	}
 
 	public void setNumberOfFloorsDifference(int[] numberOfFloorsDifference) {
-		this.numberOfFloorsDifference = numberOfFloorsDifference;
+		ElevatorSimulationMainController.numberOfFloorsDifference = numberOfFloorsDifference;
 	}
 
 	public int[] getMaxDistanceForUntaskedVariable() {
@@ -108,7 +107,7 @@ public class ElevatorSimulationMainController {
 
 	public void setMaxDistanceForUntaskedVariable(
 			int[] maxDistanceForUntaskedVariable) {
-		this.maxDistanceForUntaskedVariable = maxDistanceForUntaskedVariable;
+		ElevatorSimulationMainController.maxDistanceForUntaskedVariable = maxDistanceForUntaskedVariable;
 	}
 
 	public int[] getCountUntaskedVariable() {
@@ -116,7 +115,7 @@ public class ElevatorSimulationMainController {
 	}
 
 	public void setCountUntaskedVariable(int[] countUntaskedVariable) {
-		this.countUntaskedVariable = countUntaskedVariable;
+		ElevatorSimulationMainController.countUntaskedVariable = countUntaskedVariable;
 	}
 
 	public int[] getAppendDistanceVariable() {
@@ -124,7 +123,7 @@ public class ElevatorSimulationMainController {
 	}
 
 	public void setAppendDistanceVariable(int[] appendDistanceVariable) {
-		this.appendDistanceVariable = appendDistanceVariable;
+		ElevatorSimulationMainController.appendDistanceVariable = appendDistanceVariable;
 	}
 
 	public int[] getDistanceAlreadyGoingVariable() {
@@ -133,14 +132,14 @@ public class ElevatorSimulationMainController {
 
 	public void setDistanceAlreadyGoingVariable(
 			int[] distanceAlreadyGoingVariable) {
-		this.distanceAlreadyGoingVariable = distanceAlreadyGoingVariable;
+		ElevatorSimulationMainController.distanceAlreadyGoingVariable = distanceAlreadyGoingVariable;
 	}
 
 	public int[] getNumberOfElevators() {
 		return numberOfElevators;
 	}
 
-	public int getNumberOfFloors() {
+	public int[] getNumberOfFloors() {
 		return numberOfFloors;
 	}
 
@@ -150,7 +149,7 @@ public class ElevatorSimulationMainController {
 	}
 
 	public void setLengthOfSim(long lengthOfSim) {
-		this.lengthOfSim = lengthOfSim;
+		ElevatorSimulationMainController.lengthOfSim = lengthOfSim;
 	}
 
 	public int[] getTimeFactor() {
@@ -158,7 +157,7 @@ public class ElevatorSimulationMainController {
 	}
 
 	public void setTimeFactor(int[] timeFactor) {
-		this.timeFactor = timeFactor;
+		ElevatorSimulationMainController.timeFactor = timeFactor;
 	}
 
 	public int[] getTotalServedArray() {
@@ -166,16 +165,53 @@ public class ElevatorSimulationMainController {
 	}
 
 	public void setTotalServedArray(int[] totalServedArray) {
-		this.totalServedArray = totalServedArray;
+		ElevatorSimulationMainController.totalServedArray = totalServedArray;
 	}
 
-	public MemoryMgt getMgmt() {
+	public static MemoryMgt getMgmt() {
 		return mgmt;
 	}
 
 	public void setMgmt(MemoryMgt mgmt) {
-		this.mgmt = mgmt;
+		ElevatorSimulationMainController.mgmt = mgmt;
 	}
+	
+	
+	
+	public ElevatorSimulationMainController(int[] numberOfElevators,
+			int[] numberOfFloors, int[] timeFactor,
+			int[] numberOfEmptySpacesToUseGoingToVariable,
+			int[] numberOfEmptySpacesToUsePassingByVariable,
+			int[] numberOfEmptySpacesToUseSameFloorVariable,
+			int[] capacityThresholdVariable, int[] numberOfFloorsDifference,
+			int[] maxDistanceForUntaskedVariable, int[] countUntaskedVariable,
+			int[] appendDistanceVariable, int[] distanceAlreadyGoingVariable,
+			int[] capacityVariable) {
+
+		ElevatorSimulationMainController.numberOfElevators = numberOfElevators;
+		ElevatorSimulationMainController.numberOfFloors =numberOfFloors;
+		ElevatorSimulationMainController.timeFactor =timeFactor;
+		ElevatorSimulationMainController.numberOfEmptySpacesToUseGoingToVariable =numberOfEmptySpacesToUseGoingToVariable;
+		ElevatorSimulationMainController.numberOfEmptySpacesToUsePassingByVariable=numberOfEmptySpacesToUsePassingByVariable;
+		ElevatorSimulationMainController.numberOfEmptySpacesToUseSameFloorVariable=numberOfEmptySpacesToUseSameFloorVariable;
+		ElevatorSimulationMainController.capacityThresholdVariable=capacityThresholdVariable;
+		ElevatorSimulationMainController.numberOfFloorsDifference =numberOfFloorsDifference;
+		ElevatorSimulationMainController.maxDistanceForUntaskedVariable=maxDistanceForUntaskedVariable;
+		ElevatorSimulationMainController.countUntaskedVariable=countUntaskedVariable;
+		ElevatorSimulationMainController.appendDistanceVariable=appendDistanceVariable;
+		ElevatorSimulationMainController.distanceAlreadyGoingVariable=distanceAlreadyGoingVariable;
+		ElevatorSimulationMainController.capacityVariable=capacityVariable;
+		
+	}
+	
+
+	
+	
+	
+	
+	
+	
+	
 
 	public ElevatorSimulationMainController() throws InterruptedException {
 
@@ -199,9 +235,10 @@ public class ElevatorSimulationMainController {
 												for (int o2 = 0; o2 < capacityVariable.length; o2++) {
 													for (int p = 0; p < timeFactor.length; p++) {
 														k++;
+														Thread.sleep(2000);
 														cd = new CentralDispatcher(
 																k,
-																numberOfFloors,
+																numberOfFloors[0],
 																numberOfElevators[i],
 																capacityVariable[o2],
 																distanceAlreadyGoingVariable[j],
@@ -215,11 +252,11 @@ public class ElevatorSimulationMainController {
 																capacityThresholdVariable[o],
 																timeFactor[p]);
 														cd.kickOff();
-														cd.getEca().dispose();
-														this.getMgmt()
+														CentralDispatcher.getEca().dispose();
+														ElevatorSimulationMainController.getMgmt()
 																.cleanMemory();
 														cd = null;
-														this.getMgmt()
+														ElevatorSimulationMainController.getMgmt()
 																.cleanMemory();
 														Thread.sleep(2000);
 													}
@@ -235,5 +272,26 @@ public class ElevatorSimulationMainController {
 			}
 		}
 
+	}
+	
+public Integer getTotalNumberOfRuns(){
+		
+		Integer x = null;
+		
+		x = this.getNumberOfElevators().length*
+				this.getTimeFactor().length*
+				this.getNumberOfEmptySpacesToUseGoingToVariable().length*
+				this.getNumberOfEmptySpacesToUsePassingByVariable().length*
+				this.getNumberOfEmptySpacesToUseSameFloorVariable().length*
+				this.getCapacityThresholdVariable().length*
+				this.getNumberOfFloorsDifference().length*
+				this.getMaxDistanceForUntaskedVariable().length*
+				this.getCountUntaskedVariable().length*
+				this.getAppendDistanceVariable().length*
+				this.getDistanceAlreadyGoingVariable().length*
+				this.getCapacityVariable().length;
+		
+		return x;
+		
 	}
 }
