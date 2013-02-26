@@ -3,10 +3,14 @@ package start;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +19,7 @@ import java.util.Observer;
 import java.util.Vector;
 
 import javax.imageio.ImageIO;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -23,15 +28,15 @@ import javax.swing.JPanel;
 
 public class ElevatorComponentAnimation extends JFrame implements Observer, ActionListener {
 
-	private BufferedImage buffimage = null;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Vector<JLabel> jlabelVector = null;
-	private Vector<JPanel> jpanelVector = null;
 	private Vector<JLabel> jlabelEVector = null;
-	
-	private JPanel panel = null;
-	private Insets insets = null;
+	private JPanel clearPanel = null;
 	private Vector<JLabel> floorJLabelVector = null;
-	private JPanelElevatorGrid aJPanelElevatorGrid = null;
+	private JPanelElevatorGrid elevatorGridPanel = null;
 	private JPanel rootPanel = null;
 	private JPanel headerPanel = null;
 	private JPanel sidePanel = null;
@@ -42,15 +47,12 @@ public class ElevatorComponentAnimation extends JFrame implements Observer, Acti
 	ImageIcon imgGreen;
 	ImageIcon imgCyan;
 	private JButton pauseButton = new JButton("PAUSE");
-	private Integer width = null;
-	private Integer height = null;
+	private Dimension size = null;
 	
 	public ElevatorComponentAnimation() {
 
 		super("Animation");
 		this.setSize(700, 700);
-		
-		
 		
 		JLabel runNumberLabel = new JLabel(CentralDispatcher.getRunNumber().toString() + " / " + ElevatorSimulationMainController.numberOfRunsTotal);
 		
@@ -64,29 +66,31 @@ public class ElevatorComponentAnimation extends JFrame implements Observer, Acti
 		headerPanel.add(pauseButton);
 		sidePanel = new JPanel();
 		sidePanel.setBackground(Color.yellow);
-		aJPanelElevatorGrid = new JPanelElevatorGrid(this.getSize());
-		aJPanelElevatorGrid.setOpaque(true);
+		elevatorGridPanel = new JPanelElevatorGrid(this.getSize());
+		elevatorGridPanel.setOpaque(true);
 		
 		rootPanel.add(headerPanel, BorderLayout.NORTH);
 		rootPanel.add(sidePanel, BorderLayout.EAST);
-		rootPanel.add(aJPanelElevatorGrid, BorderLayout.CENTER);
+		rootPanel.add(elevatorGridPanel, BorderLayout.CENTER);
 		
-		aJPanelElevatorGrid.setBackground(Color.white);
+		elevatorGridPanel.setBackground(Color.white);
 	
 		jlabelEVector = new Vector<JLabel>();
 		jlabelVector = new Vector<JLabel>();
-		jpanelVector = new Vector<JPanel>();
 		floorJLabelVector = new Vector<JLabel>();
-		panel = new JPanel();
-		panel.setLayout(null);
-		panel.setOpaque(false);
-		panel.setBackground(Color.black);
-	    aJPanelElevatorGrid.add(panel);
-	    Insets insets = aJPanelElevatorGrid.getInsets();
-	    panel.setBounds(insets.left, insets.top, 700, 700);
+		clearPanel = new JPanel();
+		clearPanel.setLayout(null);
+		clearPanel.setOpaque(false);
+	    elevatorGridPanel.add(clearPanel);
+	    Insets insets = elevatorGridPanel.getInsets();
+	    
+	    int width = (int)elevatorGridPanel.getBounds().getWidth();
+	    int height = (int)elevatorGridPanel.getBounds().getHeight();
+	    
+	    clearPanel.setBounds(insets.left, insets.top,width,height);
 		
-		width = (int) (((panel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)));
-		height = (int)(((panel.getHeight() -200) / ((double) ElevatorSimulationMainController.numberOfFloors[0]))) - 5;
+		width = (int) (((clearPanel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)));
+		height = (int)(((clearPanel.getHeight() -200) / ((double) ElevatorSimulationMainController.numberOfFloors[0]))) - 5;
 		
 		try {
 			img = ImageIO.read(new File("src/start/3d-box.jpg"));
@@ -110,56 +114,94 @@ public class ElevatorComponentAnimation extends JFrame implements Observer, Acti
 			imgCyan = new ImageIcon(img2);
 			
 		} catch (IOException e) {
+
 		}
 		
 	
 	 
-	    insets = panel.getInsets();
+	    insets = clearPanel.getInsets();
 
 		for (int i = 0; i < CentralDispatcher.getNumberOfElevators(); i++) {
 			
 			jlabelEVector.add(new JLabel());
-			panel.add(jlabelEVector.get(i));
+			clearPanel.add(jlabelEVector.get(i));
 			
-			jlabelEVector.get(i).setBounds(insets.left + (int) ((50 + i* ((panel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)))),
-					insets.top + panel.getHeight() - 80, 50,
+			jlabelEVector.get(i).setBounds(insets.left + (int) ((50 + i* ((clearPanel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)))),
+					insets.top + clearPanel.getHeight() - 80, 50,
 					20);
 			
 			jlabelVector.add(new JLabel(imgBlue));
 			jlabelVector.get(i).setVisible(false);
-			panel.add(jlabelVector.get(i));
+			clearPanel.add(jlabelVector.get(i));
 			
-			jlabelVector.get(i).setBounds(insets.left + (int) ((50 + i* ((panel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)))),
-					insets.top + panel.getHeight() - 100 - (Integer) (1) * (panel.getHeight()-200)/CentralDispatcher.getNumberOfFloors(), imgBlue.getIconWidth(),
+			jlabelVector.get(i).setBounds(insets.left + (int) ((50 + i* ((clearPanel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)))),
+					insets.top + clearPanel.getHeight() - 100 - (Integer) (1) * (clearPanel.getHeight()-200)/CentralDispatcher.getNumberOfFloors(), imgBlue.getIconWidth(),
 					imgBlue.getIconHeight());
 			jlabelVector.get(i).setVisible(true);
 		}
 
-//	    for(int i = 0; i < CentralDispatcher.getNumberOfElevators(); i++){
-//	    	
-//	    	jpanelVector.add(new ElevatorImage(width,height,0,i));
-//	    	panel.add(jpanelVector.get(i));
-//	    	jpanelVector.get(i).setBounds(insets.left + (int) ((50 + i* ((panel.getWidth()-200) / ((double) CentralDispatcher.numberOfElevators)))),
-//					insets.top + panel.getHeight() - 100 - (Integer) (1) * (panel.getHeight()-200)/CentralDispatcher.getNumberOfFloors(), width,
-//					height);
-//	    	jpanelVector.get(i).setBackground(Color.red);
-//			jpanelVector.get(i).setVisible(true);
-//	    }
 	    
 	    
 		for (int i = 0; i < CentralDispatcher.getNumberOfFloors(); i++) {
 
-			floorJLabelVector.add(new JLabel(""));
-			panel.add(floorJLabelVector.get(i));
-			floorJLabelVector.get(i).setBounds(insets.left + 600,
-					(int) (panel.getHeight() - 100 - (i+1)
-							* ((panel.getHeight()-200) / ((double) ElevatorSimulationMainController.numberOfFloors[0]))), 140, 20);
+			floorJLabelVector.add(new JLabel("---"));
+			clearPanel.add(floorJLabelVector.get(i));
+			floorJLabelVector.get(i).setBounds(clearPanel.getWidth() - 100,
+					(int) (clearPanel.getHeight() - 100 - (i+1)
+							* ((clearPanel.getHeight()-200) / ((double) ElevatorSimulationMainController.numberOfFloors[0]))), 140, 20);
 
 		}
 		
+		this.size = getSize();
+		
+		
+		 this.addComponentListener(new ComponentAdapter() {
+	            public void componentResized(ComponentEvent e) {
+	            	
+	            	
+	            	double widthRatio = ((Component) e.getSource()).getBounds().getWidth()/(size.width);
+	            	double heightRatio =((Component) e.getSource()).getBounds().getHeight()/(size.height);
+	            	
+	            	size = getSize();
+	            	
+	            	rootPanel.remove(elevatorGridPanel);
+	            	
+	            	elevatorGridPanel.revalidate();
+	            	
+	            	elevatorGridPanel = new JPanelElevatorGrid(size);
+	            	
+	            	rootPanel.add(elevatorGridPanel, BorderLayout.CENTER);
+	            	
+	            	elevatorGridPanel.add(clearPanel);
+	         	    Insets insets = elevatorGridPanel.getInsets();
+	         	   clearPanel.setBounds(insets.left, insets.top, (int)elevatorGridPanel.getBounds().getWidth(), (int)elevatorGridPanel.getBounds().getHeight());
+	       		
+	         	    
+	            	elevatorGridPanel.revalidate();
+	              
+	            	Component[] jc = clearPanel.getComponents();
+	            	
+	            	for(Component c: jc){
+	            		
+//	            		if(c instanceof JLabel){
+//	            			Icon icon = ((JLabel) c).getIcon();
+//	            			if(icon != null){
+////	            				icon.paintIcon(c, c.getGraphics(), (int)(c.getWidth()*widthRatio), (int)(c.getHeight()*heightRatio));
+////	            		
+////	            				((JLabel) c).setIcon(icon);
+//	            			
+//	            			}
+//	            		}
+	            		c.setBounds((int)(c.getX()*widthRatio), (int)(c.getY()*heightRatio), (int)(c.getWidth()*widthRatio), (int)(c.getHeight()*heightRatio));
+	            		
+	            	}
+	            	
+	                clearPanel.revalidate();
+	            }
+	        });
+		
 		pauseButton.addActionListener(this);
 		
-
 	}
 
 	@Override
@@ -197,7 +239,7 @@ public class ElevatorComponentAnimation extends JFrame implements Observer, Acti
 							jlabelVector.get(
 									((Elevator) arg0).getElevatorNumberId())
 									.getX(),
-							panel.getHeight() - 100 - ((Integer) (arg1) + 1) * (panel.getHeight()-200)/CentralDispatcher.getNumberOfFloors());
+							clearPanel.getHeight() - 100 - ((Integer) (arg1) + 1) * (clearPanel.getHeight()-200)/CentralDispatcher.getNumberOfFloors());
 			   }
 			
 			

@@ -11,8 +11,8 @@ public class ElevatorSimulationMainController {
 	private static int[] totalServedArray;
 	private static volatile MemoryMgt mgmt;
 	private static volatile long lengthOfSim;
-	public static int[] numberOfElevators = {16,12};
-	public static int[] numberOfFloors = {29};
+	public static int[] numberOfElevators = {4,12};
+	public static int[] numberOfFloors = {12};
 	private static int[] timeFactor = {43,33,43};
 	private static int[] numberOfEmptySpacesToUseGoingToVariable = { 2, 3 }; // 1
 	private static int[] numberOfEmptySpacesToUsePassingByVariable = { 2, 3 };// 2
@@ -235,7 +235,7 @@ public class ElevatorSimulationMainController {
 												for (int o2 = 0; o2 < capacityVariable.length; o2++) {
 													for (int p = 0; p < timeFactor.length; p++) {
 														k++;
-														Thread.sleep(2000);
+														Thread.sleep(1000);
 														cd = new CentralDispatcher(
 																k,
 																numberOfFloors[0],
